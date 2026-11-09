@@ -1,0 +1,5 @@
+dati/
+.env*
+node_modules/
+dist/
+public/lezioni/**/*.mp4

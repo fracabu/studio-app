@@ -1,0 +1,13 @@
+node_modules/
+dist/
+# screen dei compiti e risposte di Claude: dati della famiglia, restano sul PC
+dati/
+
+# segreti
+.env*
+
+# video pesanti: stanno fuori da git (Drive o spazio file)
+public/lezioni/**/*.mp4
+
+.vercel
+.env*

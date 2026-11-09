@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Misurare la temperatura</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Lilita+One&family=Patrick+Hand&display=swap" rel="stylesheet" />
+<style>
+  /* Stesso stile dell'app (src/styles.css), palette "Rosso fuoco". */
+  :root {
+    --sfondo: #c2352b; --quadretto-fondo: rgba(255,255,255,.14); --barra: #7d1d17;
+    --linguetta: #ffd23f; --linguetta-testo: #3a0d09; --accento: #2b59ff; --accento-testo: #fff;
+    --inchiostro: #3a0d09; --foglio: #fff;
+    --inchiostro-tenue: color-mix(in oklab, var(--inchiostro) 62%, #fff);
+    --linea: color-mix(in oklab, var(--inchiostro) 14%, #fff);
+    --penna-rossa: #d0342c; --stella: #ffd23f; --ombra: 0 5px 0 rgba(0,0,0,.25);
+    --verde: oklch(0.9 0.1 150); --verde-forte: oklch(0.55 0.14 150);
+    --font: 'Nunito', system-ui, sans-serif; --font-gioco: 'Lilita One', 'Nunito', sans-serif; --font-mano: 'Patrick Hand', 'Nunito', sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; overflow: hidden; color: var(--inchiostro); font-family: var(--font); font-size: 17px; line-height: 1.45;
+    background-color: var(--sfondo);
+    background-image: linear-gradient(var(--quadretto-fondo) 2px, transparent 2px), linear-gradient(90deg, var(--quadretto-fondo) 2px, transparent 2px);
+    background-size: 28px 28px;
+  }
+  h1, h2, h3 { margin: 0; font-weight: 400; font-family: var(--font-gioco); line-height: 1.1; }
+  button { font: inherit; color: inherit; }
+  :focus-visible { outline: 3px solid var(--stella); outline-offset: 2px; border-radius: 4px; }
+  .telaio { height: 100dvh; display: flex; flex-direction: column; }
+  .barra { flex: none; display: flex; align-items: center; gap: 14px; padding: 8px 16px; background: var(--barra); color: #fff; box-shadow: 0 4px 0 rgba(0,0,0,.25); flex-wrap: wrap; }
+  .indietro { color: #fff; text-decoration: none; font-weight: 800; border: 2px solid rgba(255,255,255,.45); border-radius: 999px; padding: 3px 12px; }
+  .titolo { font-family: var(--font-gioco); font-size: 1.35rem; }
+  .titolo small { font-family: var(--font-mano); font-size: 1.05rem; opacity: .8; margin-left: 6px; }
+  .linguette { display: flex; gap: 10px; margin-left: auto; }
+  .linguette button {
+    cursor: pointer; border: 0; min-width: 84px; padding: 6px 12px 4px; background: var(--linguetta); color: var(--linguetta-testo);
+    font-family: var(--font-mano); font-size: 1.2rem; line-height: 1; border-radius: 5px; box-shadow: 0 4px 0 rgba(0,0,0,.3); transform: rotate(-2deg);
+  }
+  .linguette button:nth-child(even) { transform: rotate(1.5deg); }
+  .linguette button[aria-selected='true'] { background: #fff; color: var(--inchiostro); transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,.3); }
+  .contatore { display: inline-flex; gap: 6px; align-items: center; padding: 2px 12px 2px 9px; border-radius: 999px; background: var(--stella); color: #3a2400; font-family: var(--font-gioco); font-size: 1.15rem; border: 3px solid #3a2400; box-shadow: 0 3px 0 #3a2400; }
+  main { flex: 1; min-height: 0; width: 100%; max-width: 1100px; margin: 0 auto; padding: 30px 16px 16px; }
+  .vista { height: 100%; display: none; }
+  .vista.attiva { display: flex; flex-direction: column; }
+  .pannello { position: relative; flex: 1; min-height: 0; background: var(--foglio); border-radius: 6px; padding: 26px 22px 18px; box-shadow: var(--ombra); display: flex; flex-direction: column; }
+  .etichetta { position: absolute; top: -17px; left: 14px; background: #fff; padding: 2px 12px 0; border: 2px solid var(--inchiostro); border-radius: 6px; font-family: var(--font-mano); font-size: 1.3rem; transform: rotate(-2deg); }
+  .scorre { flex: 1; min-height: 0; overflow-y: auto; padding-right: 6px; }
+  .evid { background: linear-gradient(transparent 40%, var(--verde) 40% 90%, transparent 90%); padding: 0 2px; font-weight: 800; }
+  .bottone { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; background: var(--accento); color: var(--accento-testo); font-family: var(--font-gioco); font-size: 1.1rem; border: 3px solid var(--inchiostro); border-radius: 10px; padding: 8px 18px; box-shadow: 0 4px 0 var(--inchiostro); }
+  .bottone.bianco { background: #fff; color: var(--inchiostro); }
+  .bottone:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--inchiostro); }
+  .bottone:disabled { opacity: .45; cursor: default; }
+
+  /* Video */
+  .video-box { position: relative; flex: 1; min-height: 0; display: grid; place-items: center; background: #000; border-radius: 6px; overflow: hidden; }
+  /* assoluto: così il video si adatta al riquadro (intero, con i comandi) invece di allargarlo */
+  video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; display: block; }
+  .video-box iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; }
+  .manca { color: #fff; text-align: center; font-family: var(--font-mano); font-size: 1.4rem; padding: 20px; }
+  .sotto-video { display: flex; align-items: center; gap: 14px; margin-top: 12px; flex-wrap: wrap; }
+  .nota { color: var(--inchiostro-tenue); font-size: .95rem; }
+
+  /* Scheda */
+  .schede { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 26px 22px; padding-top: 14px; }
+  .carta { border: 2px solid var(--linea); border-radius: 8px; padding: 14px 16px; }
+  .carta h2 { font-size: 1.35rem; margin-bottom: 6px; }
+  .carta h2 .num { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--linguetta); border: 2px solid var(--inchiostro); margin-right: 6px; font-size: 1rem; }
+  .carta p { margin: 6px 0; }
+  .carta ul { margin: 6px 0; padding-left: 20px; }
+  .formula { font-family: var(--font-gioco); font-size: 1.15rem; background: #fff7d6; border: 2px dashed var(--inchiostro); border-radius: 8px; padding: 6px 10px; margin: 6px 0; display: inline-block; }
+  table { border-collapse: collapse; width: 100%; font-size: .95rem; margin-top: 6px; }
+  th, td { border-bottom: 1px solid var(--linea); padding: 5px 6px; text-align: left; }
+  th { font-family: var(--font-gioco); font-weight: 400; }
+  .larga { grid-column: 1 / -1; }
+
+  /* Esercizi */
+  .esercizio { border: 2px solid var(--linea); border-radius: 8px; padding: 14px 16px; margin-bottom: 18px; }
+  .esercizio h3 { font-size: 1.2rem; margin-bottom: 4px; }
+  .esercizio ol { margin: 6px 0; padding-left: 22px; }
+  .metodo { background: #f3f7ff; border-left: 5px solid var(--accento); border-radius: 6px; padding: 8px 12px; margin: 8px 0; }
+  .soluzione { display: none; background: var(--verde); border-radius: 6px; padding: 8px 12px; margin-top: 8px; font-family: var(--font-mano); font-size: 1.15rem; }
+  .soluzione.aperta { display: block; }
+
+  /* Quiz */
+  .quiz { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; padding-bottom: 8px; }
+  .progresso { display: flex; gap: 5px; }
+  .progresso i { flex: 1; height: 10px; border-radius: 5px; background: var(--linea); }
+  .progresso i.giusta { background: var(--verde-forte); }
+  .progresso i.sbagliata { background: var(--penna-rossa); }
+  .progresso i.ora { background: var(--linguetta); outline: 2px solid var(--inchiostro); }
+  .domanda-quiz { font-family: var(--font-gioco); font-size: clamp(1.3rem, 3.4vh, 1.8rem); }
+  .risposte { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .risposte button { cursor: pointer; text-align: left; background: #fff; border: 3px solid var(--inchiostro); border-radius: 10px; padding: 12px 14px; box-shadow: 0 4px 0 var(--inchiostro); font-weight: 700; font-size: 1.05rem; }
+  .risposte button:disabled { cursor: default; }
+  .risposte button.giusta { background: var(--verde); }
+  .risposte button.sbagliata { background: #ffd0cc; text-decoration: line-through; }
+  .spiega { min-height: 3em; font-weight: 600; }
+  .spiega b { font-family: var(--font-gioco); font-weight: 400; font-size: 1.2rem; }
+  .fine { flex: 1; display: grid; place-items: center; text-align: center; }
+  .fine h2 { font-size: 2.4rem; }
+  .stelle-grandi { font-size: 2.6rem; letter-spacing: 4px; }
+
+  @media (max-width: 760px) {
+    .linguette { margin-left: 0; width: 100%; justify-content: space-between; }
+    .linguette button { min-width: 0; flex: 1; }
+    .schede, .risposte { grid-template-columns: 1fr; }
+    main { padding-top: 26px; }
+  }
+</style>
+</head>
+<body>
+<div class="telaio">
+  <header class="barra">
+    <a class="indietro" href="/#lezioni">← App</a>
+    <h1 class="titolo">Misurare la temperatura <small>Scienze · pag. 64–68</small></h1>
+    <nav class="linguette" role="tablist">
+      <button role="tab" data-vista="video" aria-selected="true">🎬 Video</button>
+      <button role="tab" data-vista="scheda" aria-selected="false">📄 Scheda</button>
+      <button role="tab" data-vista="esercizi" aria-selected="false">✏️ Esercizi</button>
+      <button role="tab" data-vista="quiz" aria-selected="false">⭐ Quiz</button>
+    </nav>
+    <span class="contatore" title="Le tue stelle">★ <span id="stelle">0</span></span>
+  </header>
+
+  <main>
+    <!-- VIDEO -->
+    <section class="vista attiva" id="vista-video">
+      <div class="pannello">
+        <span class="etichetta">Guarda prima il video</span>
+        <div class="video-box" id="video-box">
+          <video id="video" src="video.mp4" controls playsinline preload="metadata"></video>
+        </div>
+        <div class="sotto-video">
+          <span class="nota">Guardalo tutto fino alla fine: vale <b>5 stelle</b>. Poi passa alla scheda e al quiz.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCHEDA -->
+    <section class="vista" id="vista-scheda">
+      <div class="pannello">
+        <span class="etichetta">Scheda per studiare</span>
+        <div class="scorre">
+          <div class="schede">
+            <div class="carta">
+              <h2><span class="num">1</span>La dilatazione termica</h2>
+              <p>Se scaldi un corpo, diventa un po' più grande: <span class="evid">si dilata</span>. Se lo raffreddi, <span class="evid">si contrae</span>.</p>
+              <p>Perché? Le particelle scaldate si muovono più veloci, hanno bisogno di più spazio e si allontanano. Il volume aumenta e la <b>densità diminuisce</b>.</p>
+              <ul>
+                <li><b>Solidi</b>: si dilatano poco (giunti dei binari).</li>
+                <li><b>Liquidi</b>: di più.</li>
+                <li><b>Aeriformi</b>: moltissimo (palloncino nel congelatore, mongolfiera).</li>
+              </ul>
+              <p class="nota">L'acqua è un'eccezione quando si raffredda.</p>
+            </div>
+            <div class="carta">
+              <h2><span class="num">2</span>Agitazione termica e temperatura</h2>
+              <p>Le particelle non stanno mai ferme: è l'<span class="evid">agitazione termica</span>.</p>
+              <ul>
+                <li>solido: piccole vibrazioni</li>
+                <li>liquido: si spostano, anche veloci</li>
+                <li>aeriforme: liberissime e velocissime</li>
+              </ul>
+              <p>La <span class="evid">temperatura</span> è la grandezza fisica che <b>misura l'agitazione termica</b>. Caldo = particelle veloci, freddo = particelle lente.</p>
+              <p class="nota">Il tatto inganna (con la febbre la stanza sembra fredda): il termometro no.</p>
+            </div>
+            <div class="carta">
+              <h2><span class="num">3</span>Il termometro</h2>
+              <p><b>Bulbo</b> di vetro con un liquido colorato + <b>capillare</b>, un tubicino sottile. Col caldo il liquido si dilata e sale, col freddo scende.</p>
+              <p>Il termometro <b>digitale</b> trasforma la temperatura in un segnale elettrico.</p>
+              <p><b>Tarare</b> un termometro Celsius: ghiaccio che fonde → tacca <b>0</b>; acqua che bolle → tacca <b>100</b>; dividi in 100 parti.</p>
+              <p class="nota">Termometro di Galileo: ampolle nell'acqua; col caldo l'acqua è meno densa e alcune affondano.</p>
+            </div>
+            <div class="carta">
+              <h2><span class="num">4</span>Le tre scale</h2>
+              <ul>
+                <li><b>Celsius (°C)</b>: 0 ghiaccio che fonde, 100 acqua che bolle.</li>
+                <li><b>Kelvin (K)</b>: Sistema Internazionale. 0 K = <span class="evid">zero assoluto</span> = −273,15 °C. Più freddo non si può.</li>
+                <li><b>Fahrenheit (°F)</b>: Stati Uniti. 32 ghiaccio, 212 acqua che bolle. Inventata da Fahrenheit verso il 1724.</li>
+              </ul>
+            </div>
+            <div class="carta larga">
+              <h2><span class="num">5</span>Le formule per gli esercizi</h2>
+              <div class="formula">K = °C + 273,15</div>
+              <div class="formula">°C = K − 273,15</div>
+              <div class="formula">°F = (°C × 1,8) + 32</div>
+              <div class="formula">°C = (°F − 32) : 1,8</div>
+              <table>
+                <tr><th></th><th>Kelvin</th><th>Celsius</th><th>Fahrenheit</th></tr>
+                <tr><td>acqua che bolle</td><td>373 K</td><td>100 °C</td><td>212 °F</td></tr>
+                <tr><td>corpo umano</td><td>310 K</td><td>37 °C</td><td>circa 98 °F</td></tr>
+                <tr><td>ghiaccio che fonde</td><td>273 K</td><td>0 °C</td><td>32 °F</td></tr>
+                <tr><td>zero assoluto</td><td>0 K</td><td>−273 °C</td><td>−459 °F</td></tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ESERCIZI -->
+    <section class="vista" id="vista-esercizi">
+      <div class="pannello">
+        <span class="etichetta">Esercizi guidati</span>
+        <div class="scorre" id="esercizi" style="padding-top:12px"></div>
+      </div>
+    </section>
+
+    <!-- QUIZ -->
+    <section class="vista" id="vista-quiz">
+      <div class="pannello">
+        <span class="etichetta">Quiz · 1 stella per risposta giusta, +5 se fai tutto giusto</span>
+        <div class="quiz" id="quiz"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+/* ── Stelle: stesso archivio dell'app (src/lib/premi.ts) ── */
+const CHIAVE_PREMI = 'studio-app:premi'
+function leggiPremi() {
+  try { return { eventi: [], visti: ['bit'], delGiorno: {}, ...JSON.parse(localStorage.getItem(CHIAVE_PREMI) ?? '{}') } }
+  catch { return { eventi: [], visti: ['bit'], delGiorno: {} } }
+}
+function registra(id, tipo, stelle) {
+  const s = leggiPremi()
+  if (s.eventi.some((e) => e.id === id)) return false
+  s.eventi.push({ id, tipo, stelle, quando: new Date().toISOString() })
+  try { localStorage.setItem(CHIAVE_PREMI, JSON.stringify(s)) } catch {}
+  mostraStelle()
+  return true
+}
+function mostraStelle() {
+  document.getElementById('stelle').textContent = leggiPremi().eventi.reduce((n, e) => n + e.stelle, 0)
+}
+mostraStelle()
+
+/* ── Linguette ── */
+const linguette = document.querySelectorAll('.linguette button')
+function apri(nome) {
+  linguette.forEach((b) => b.setAttribute('aria-selected', String(b.dataset.vista === nome)))
+  document.querySelectorAll('.vista').forEach((v) => v.classList.toggle('attiva', v.id === 'vista-' + nome))
+  if (nome !== 'video') fermaVideo()
+  try { localStorage.setItem('studio-app:lezione-temperatura:vista', nome) } catch {}
+}
+linguette.forEach((b) => b.addEventListener('click', () => apri(b.dataset.vista)))
+// la sezione arriva dall'indirizzo (#scheda, #quiz… dai pulsanti dell'app), altrimenti l'ultima aperta
+addEventListener('hashchange', () => { const h = location.hash.replace('#', ''); if (['video', 'scheda', 'esercizi', 'quiz'].includes(h)) apri(h) })
+const daHash = location.hash.replace('#', '')
+if (['video', 'scheda', 'esercizi', 'quiz'].includes(daHash)) apri(daHash)
+else try { const v = localStorage.getItem('studio-app:lezione-temperatura:vista'); if (v) apri(v) } catch {}
+
+/* ── Video ──
+   Sul PC di casa c'è video.mp4 accanto alla pagina (fuori da git). Online non c'è:
+   si passa al video su Google Drive (cartella "Video lezioni - Scienze", chiunque col link). */
+const DRIVE_ID = '' // id del file su Drive: drive.google.com/file/d/<ID>/view
+const video = document.getElementById('video')
+const box = document.getElementById('video-box')
+function fermaVideo() {
+  const v = document.getElementById('video'); if (v) v.pause()
+  // getElementById e non `box`: apri() gira già all'avvio, prima che `box` esista
+  const f = document.getElementById('video-box').querySelector('iframe'); if (f && f.src !== 'about:blank') { const s = f.src; f.src = 'about:blank'; f.dataset.src = s }
+}
+function videoDaDrive() {
+  if (!DRIVE_ID) { box.innerHTML = '<p class="manca">Il video è in preparazione.<br>Intanto guarda la scheda! 📄</p>'; return }
+  box.innerHTML = `<iframe src="https://drive.google.com/file/d/${DRIVE_ID}/preview" allow="autoplay; fullscreen" allowfullscreen title="Video della lezione"></iframe>`
+  // da Drive non sappiamo quando il video finisce: le 5 stelle si prendono col pulsante, dopo 4 minuti
+  const nota = document.querySelector('.sotto-video')
+  const b = document.createElement('button'); b.className = 'bottone'; b.disabled = true; b.textContent = '✓ Ho visto tutto il video'
+  nota.appendChild(b)
+  setTimeout(() => { b.disabled = false }, 4 * 60 * 1000)
+  b.addEventListener('click', () => { registra('video:scienze-temperatura', 'video', 5); b.disabled = true; b.textContent = '⭐ +5 stelle!' })
+}
+// riapre il video di Drive quando si torna sulla linguetta
+document.querySelector('[data-vista="video"]').addEventListener('click', () => {
+  const f = box.querySelector('iframe'); if (f && f.dataset.src) { f.src = f.dataset.src; delete f.dataset.src }
+})
+video.addEventListener('error', videoDaDrive)
+video.addEventListener('ended', () => registra('video:scienze-temperatura', 'video', 5))
+
+/* ── Esercizi (nostri, non quelli del libro) ── */
+const ESERCIZI = [
+  {
+    titolo: '1. Da gradi Celsius a kelvin',
+    testo: 'Trasforma in kelvin: <b>15 °C</b> · <b>100 °C</b> · <b>−20 °C</b>',
+    metodo: 'Usa <b>K = °C + 273,15</b>: aggiungi sempre 273,15. Con i numeri negativi è come fare 273,15 − 20.',
+    soluzione: '15 + 273,15 = <b>288,15 K</b> · 100 + 273,15 = <b>373,15 K</b> · −20 + 273,15 = <b>253,15 K</b>',
+  },
+  {
+    titolo: '2. Da kelvin a gradi Celsius',
+    testo: 'Trasforma in gradi Celsius: <b>280 K</b> · <b>310 K</b>',
+    metodo: 'Usa <b>°C = K − 273,15</b>: togli 273,15.',
+    soluzione: '280 − 273,15 = <b>6,85 °C</b> · 310 − 273,15 = <b>36,85 °C</b> (quasi la temperatura del corpo!)',
+  },
+  {
+    titolo: '3. Da gradi Celsius a Fahrenheit',
+    testo: 'Trasforma in °F: <b>25 °C</b> · <b>40 °C</b>',
+    metodo: 'Usa <b>°F = (°C × 1,8) + 32</b>. Due passi: <b>prima</b> moltiplica per 1,8, <b>poi</b> aggiungi 32.',
+    soluzione: '25 × 1,8 = 45 → 45 + 32 = <b>77 °F</b> · 40 × 1,8 = 72 → 72 + 32 = <b>104 °F</b>',
+  },
+  {
+    titolo: '4. Da Fahrenheit a gradi Celsius',
+    testo: 'Trasforma in °C: <b>50 °F</b> · <b>95 °F</b>',
+    metodo: 'Usa <b>°C = (°F − 32) : 1,8</b>. Al contrario di prima: <b>prima</b> togli 32, <b>poi</b> dividi per 1,8.',
+    soluzione: '50 − 32 = 18 → 18 : 1,8 = <b>10 °C</b> · 95 − 32 = 63 → 63 : 1,8 = <b>35 °C</b>',
+  },
+  {
+    titolo: '5. Spiega con le particelle',
+    testo: 'a) D\'estate i fili della luce tra i pali pendono più che d\'inverno. Perché?<br>b) Una bottiglia di plastica vuota e chiusa, messa in frigo, si schiaccia un po\'. Perché?',
+    metodo: 'Ragiona così: <b>caldo o freddo?</b> → le particelle vanno <b>più veloci o più lente?</b> → si <b>allontanano o si avvicinano?</b> → il volume <b>aumenta o diminuisce?</b>',
+    soluzione: 'a) Col caldo le particelle del metallo si agitano di più e si allontanano: il filo si <b>dilata</b>, diventa più lungo e pende.<br>b) Al freddo le particelle dell\'aria dentro rallentano e si avvicinano: l\'aria si <b>contrae</b>, occupa meno spazio e la bottiglia si schiaccia.',
+  },
+  {
+    titolo: '6. Completa le frasi',
+    testo: 'a) La temperatura misura l\'… termica delle particelle.<br>b) Lo zero assoluto è … K, cioè … °C.<br>c) Nel termometro il liquido sale nel … perché si … .<br>d) La dilatazione è più forte negli … e più debole nei … .',
+    metodo: 'Rileggi la scheda: ogni parola che manca è <span class="evid">evidenziata</span> lì.',
+    soluzione: 'a) agitazione · b) 0 K, −273,15 °C · c) capillare, dilata · d) aeriformi, solidi',
+  },
+]
+document.getElementById('esercizi').innerHTML = ESERCIZI.map((e, i) => `
+  <div class="esercizio">
+    <h3>${e.titolo}</h3>
+    <p>${e.testo}</p>
+    <div class="metodo">💡 <b>Come si fa:</b> ${e.metodo}</div>
+    <button class="bottone bianco" data-sol="${i}">Prova da solo, poi controlla ✔</button>
+    <div class="soluzione" id="sol-${i}">${e.soluzione}</div>
+  </div>`).join('')
+document.getElementById('esercizi').addEventListener('click', (ev) => {
+  const b = ev.target.closest('[data-sol]'); if (!b) return
+  const s = document.getElementById('sol-' + b.dataset.sol)
+  s.classList.toggle('aperta')
+  b.textContent = s.classList.contains('aperta') ? 'Nascondi la soluzione' : 'Prova da solo, poi controlla ✔'
+})
+
+/* ── Quiz ── */
+const DOMANDE = [
+  { d: 'Che cosa succede a un corpo quando lo scaldi?', r: ['Si dilata: il volume aumenta', 'Si contrae: il volume diminuisce', 'Diventa più pesante', 'Non cambia niente'], g: 0, s: 'Le particelle si muovono di più e si allontanano: il volume aumenta.' },
+  { d: 'Perché la mongolfiera sale?', r: ['L\'aria calda è meno densa di quella fuori', 'Dentro c\'è elio', 'Il bruciatore la spinge in alto', 'L\'aria calda pesa di più'], g: 0, s: 'L\'aria scaldata si dilata, diventa meno densa e sale.' },
+  { d: 'In quale stato la dilatazione termica è più evidente?', r: ['Negli aeriformi', 'Nei solidi', 'Nei liquidi', 'È uguale per tutti'], g: 0, s: 'Aeriformi moltissimo, liquidi di più, solidi poco.' },
+  { d: 'A che cosa servono i giunti di dilatazione dei binari?', r: ['A lasciare spazio al metallo che si allunga col caldo', 'A far passare l\'acqua', 'A far frenare i treni', 'A risparmiare ferro'], g: 0, s: 'D\'estate il metallo si dilata: senza spazio il binario si deformerebbe.' },
+  { d: 'Che cos\'è la temperatura?', r: ['La grandezza che misura l\'agitazione termica', 'La quantità di particelle di un corpo', 'Il peso di un corpo caldo', 'Il calore che sentiamo con la mano'], g: 0, s: 'La temperatura misura quanto si agitano le particelle.' },
+  { d: 'In un solido le particelle…', r: ['fanno solo piccole vibrazioni', 'sono completamente ferme', 'corrono velocissime ovunque', 'escono dal solido'], g: 0, s: 'Sono strettamente legate, ma vibrano: non sono mai ferme.' },
+  { d: 'Nel termometro, come si chiama il tubicino dove sale il liquido?', r: ['Capillare', 'Bulbo', 'Ampolla', 'Giunto'], g: 0, s: 'Il bulbo è la pallina in basso; il capillare è il tubicino sottile.' },
+  { d: 'Per tarare un termometro Celsius, a quale tacca corrisponde l\'acqua che bolle?', r: ['100', '0', '32', '273'], g: 0, s: 'Ghiaccio che fonde = 0, acqua che bolle = 100, in mezzo 100 parti.' },
+  { d: 'Che cos\'è lo zero assoluto?', r: ['0 K, cioè −273,15 °C: più freddo non si può', '0 °C, quando l\'acqua gela', '−100 °C', 'La temperatura del Polo Nord'], g: 0, s: 'È lo zero della scala Kelvin: non si può raggiungere né scendere sotto.' },
+  { d: 'Quanto fa 30 °C in kelvin?', r: ['303,15 K', '243,15 K', '30 K', '86 K'], g: 0, s: 'K = °C + 273,15 → 30 + 273,15 = 303,15 K.' },
+  { d: 'Quanto fa 20 °C in Fahrenheit?', r: ['68 °F', '52 °F', '36 °F', '11 °F'], g: 0, s: '20 × 1,8 = 36, poi 36 + 32 = 68 °F.' },
+  { d: 'A quanti gradi Fahrenheit bolle l\'acqua?', r: ['212 °F', '100 °F', '32 °F', '373 °F'], g: 0, s: 'Fahrenheit: 32 il ghiaccio, 212 l\'acqua che bolle (180 parti in mezzo).' },
+]
+const quiz = document.getElementById('quiz')
+let ordine, n, giuste, esiti
+function mescola(a) { return a.map((x) => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map((p) => p[1]) }
+function inizia() {
+  ordine = mescola(DOMANDE.map((_, i) => i)); n = 0; giuste = 0; esiti = []
+  mostra()
+}
+function barra() {
+  return '<div class="progresso">' + DOMANDE.map((_, i) => `<i class="${esiti[i] === true ? 'giusta' : esiti[i] === false ? 'sbagliata' : i === n ? 'ora' : ''}"></i>`).join('') + '</div>'
+}
+function mostra() {
+  if (n >= ordine.length) return finito()
+  const q = DOMANDE[ordine[n]]
+  const scelte = mescola(q.r.map((t, i) => ({ t, giusta: i === q.g })))
+  quiz.innerHTML = barra() +
+    `<p class="nota">Domanda ${n + 1} di ${DOMANDE.length}</p>
+     <h2 class="domanda-quiz">${q.d}</h2>
+     <div class="risposte">${scelte.map((c, i) => `<button data-i="${i}">${c.t}</button>`).join('')}</div>
+     <p class="spiega" id="spiega"></p>
+     <div><button class="bottone" id="avanti" disabled>Avanti →</button></div>`
+  quiz.querySelectorAll('.risposte button').forEach((b) => b.addEventListener('click', () => {
+    const c = scelte[b.dataset.i]
+    quiz.querySelectorAll('.risposte button').forEach((x) => { x.disabled = true; if (scelte[x.dataset.i].giusta) x.classList.add('giusta') })
+    if (!c.giusta) b.classList.add('sbagliata')
+    esiti[n] = c.giusta
+    if (c.giusta) { giuste++; registra(`quiz:scienze-temperatura:${ordine[n]}`, 'quiz', 1) }
+    document.getElementById('spiega').innerHTML = (c.giusta ? '<b>Giusto! ★</b> ' : '<b>Quasi…</b> ') + q.s
+    const av = document.getElementById('avanti'); av.disabled = false; av.focus()
+  }))
+  document.getElementById('avanti').addEventListener('click', () => { n++; mostra() })
+}
+function finito() {
+  const perfetto = giuste === DOMANDE.length
+  if (perfetto) registra('quiz:scienze-temperatura:perfetto', 'quiz', 5)
+  quiz.innerHTML = barra() + `<div class="fine"><div>
+    <h2>${perfetto ? 'Tutto giusto!' : giuste >= 9 ? 'Bravissimo!' : giuste >= 6 ? 'Bene!' : 'Si può fare meglio!'}</h2>
+    <p class="stelle-grandi">${'★'.repeat(Math.max(1, Math.round(giuste / DOMANDE.length * 5)))}</p>
+    <p><b>${giuste} su ${DOMANDE.length}</b> risposte giuste${perfetto ? ' · +5 stelle bonus' : ''}.</p>
+    <p class="nota">Le stelle valgono una volta sola per domanda: rifare il quiz serve per ripassare.</p>
+    <p><button class="bottone" id="ancora">Rifai il quiz</button></p>
+  </div></div>`
+  document.getElementById('ancora').addEventListener('click', inizia)
+}
+inizia()
+</script>
+</body>
+</html>
