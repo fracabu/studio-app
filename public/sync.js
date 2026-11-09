@@ -1,16 +1,18 @@
-/* Sincronizzazione dei progressi col database (api/progressi).
+/* Sincronizzazione dei progressi col database (api/progressi, Neon).
  * Un solo file per l'app e per le pagine delle lezioni: si carica con <script src="/sync.js">.
- * Tutto quello che l'app salva in localStorage sotto "studio-app:" viene copiato sul server:
- * a ogni modifica (dopo una breve attesa) e quando si chiude la pagina.
- * All'avvio: se qui c'è qualcosa non ancora mandato vince il browser, altrimenti vince il server.
- * Funziona solo se si è fatto il login (cookie di sessione); senza, i dati restano nel browser
- * e partono al primo avvio col login.
+ *
+ * Il database è la fonte di verità; localStorage ("studio-app:*") fa da copia di lavoro nel browser,
+ * così l'app resta veloce e funziona anche senza rete.
+ * - Ogni modifica segna la chiave come "cambiata"; dopo 1,5 s (o chiudendo la pagina) partono
+ *   SOLO le chiavi cambiate (null = cancellata). Il server le unisce a quelle che ha.
+ * - All'avvio: prima si mandano le modifiche rimaste in sospeso, poi si prende tutto dal server.
+ * - Primo login da un browser che aveva già dati suoi: si mandano tutti (vincono loro), mai cancellati.
  */
 (() => {
   if (window.studioSync) return
   const PREFISSO = 'studio-app:'
-  const SPORCO = 'studio-sync:sporco' // "1" = ci sono modifiche non ancora sul server
-  const BASE = 'studio-sync:base' // data dell'ultima versione del server che il browser conosce
+  const CAMBIATE = 'studio-sync:cambiate' // chiavi modificate e non ancora sul server (JSON)
+  const BASE = 'studio-sync:base' // data dell'ultima versione del server allineata qui
   const ATTESA = 1500
 
   const ls = window.localStorage
@@ -24,35 +26,57 @@
     for (let i = 0; i < ls.length; i++) { const k = ls.key(i); if (k && k.startsWith(PREFISSO)) out.push(k) }
     return out
   }
-  const raccogli = () => Object.fromEntries(chiaviApp().map((k) => [k, ls.getItem(k)]))
+  const cambiate = () => { try { return JSON.parse(ls.getItem(CAMBIATE) || '[]') } catch { return [] } }
+  const segnaCambiate = (lista) => setOrig.call(ls, CAMBIATE, JSON.stringify([...new Set(lista)]))
 
-  async function manda(keepalive = false) {
+  /** Scrive nel browser la versione del server (senza segnarla come modifica). */
+  function applica(dati, aggiornato) {
+    attivo = false
+    const restano = new Set(cambiate()) // modifiche locali arrivate nel frattempo: non toccarle
+    for (const k of chiaviApp()) if (!(k in dati) && !restano.has(k)) rmOrig.call(ls, k)
+    for (const [k, v] of Object.entries(dati || {})) if (k.startsWith(PREFISSO) && typeof v === 'string' && !restano.has(k)) setOrig.call(ls, k, v)
+    setOrig.call(ls, BASE, aggiornato)
+    attivo = true
+  }
+
+  async function manda(keepalive = false, chiavi = cambiate()) {
     clearTimeout(timer); timer = null
+    if (!chiavi.length) return true
+    const dati = Object.fromEntries(chiavi.map((k) => [k, ls.getItem(k)])) // null = cancellata
     try {
       const r = await fetch('/api/progressi', {
         method: 'PUT', keepalive, credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ dati: raccogli() }),
+        body: JSON.stringify({ dati }),
       })
       if (!r.ok) return false
-      const { aggiornato } = await r.json()
-      setOrig.call(ls, SPORCO, '0'); setOrig.call(ls, BASE, aggiornato)
+      const risposta = await r.json()
+      // tolte dalla lista solo le chiavi mandate e non cambiate di nuovo intanto
+      segnaCambiate(cambiate().filter((k) => !chiavi.includes(k) || ls.getItem(k) !== dati[k]))
+      if (!keepalive) applica(risposta.dati, risposta.aggiornato)
       return true
     } catch { return false }
   }
 
   function segnaModifica(chiave) {
     if (!attivo || typeof chiave !== 'string' || !chiave.startsWith(PREFISSO)) return
-    setOrig.call(ls, SPORCO, '1')
+    segnaCambiate([...cambiate(), chiave])
     clearTimeout(timer); timer = setTimeout(() => manda(), ATTESA)
   }
 
-  Storage.prototype.setItem = function (k, v) { setOrig.call(this, k, v); if (this === ls) segnaModifica(k) }
-  Storage.prototype.removeItem = function (k) { rmOrig.call(this, k); if (this === ls) segnaModifica(k) }
+  Storage.prototype.setItem = function (k, v) {
+    const prima = this === ls ? ls.getItem(k) : null
+    setOrig.call(this, k, v)
+    if (this === ls && prima !== String(v)) segnaModifica(k) // riscrivere lo stesso valore non è una modifica
+  }
+  Storage.prototype.removeItem = function (k) {
+    const esisteva = this === ls && ls.getItem(k) !== null
+    rmOrig.call(this, k)
+    if (esisteva) segnaModifica(k)
+  }
 
-  // chiudendo la pagina, manda subito quello che è in attesa
-  addEventListener('pagehide', () => { if (timer) manda(true) })
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && timer) manda(true) })
+  addEventListener('pagehide', () => { if (cambiate().length) manda(true) })
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && cambiate().length) manda(true) })
 
   /** All'avvio. Risponde 'ok', 'non-collegato' oppure 'offline'. */
   async function avvia() {
@@ -61,31 +85,26 @@
     if (r.status === 401) return 'non-collegato'
     if (!r.ok) return 'offline'
     const { dati, aggiornato } = await r.json()
-    if (ls.getItem(SPORCO) === '1') { await manda(); return 'ok' }
-    if (aggiornato && aggiornato !== ls.getItem(BASE)) {
-      // il server ha una versione più nuova: rimpiazza quella del browser
-      attivo = false
-      for (const k of chiaviApp()) rmOrig.call(ls, k)
-      for (const [k, v] of Object.entries(dati || {})) if (k.startsWith(PREFISSO) && typeof v === 'string') setOrig.call(ls, k, v)
-      setOrig.call(ls, BASE, aggiornato); setOrig.call(ls, SPORCO, '0')
-      attivo = true
-      return 'ok'
+    if (ls.getItem(BASE) === null && chiaviApp().length) {
+      // primo login da questo browser, che aveva già dati suoi: li manda tutti (vincono loro)
+      segnaCambiate([...cambiate(), ...chiaviApp()])
     }
-    if (!aggiornato && chiaviApp().length) await manda() // primo login da un browser che aveva già dati
+    if (cambiate().length) { await manda(); return 'ok' } // manda() poi allinea col server
+    if (aggiornato) applica(dati, aggiornato)
     return 'ok'
   }
 
   /** Logout: manda quello che manca, poi pulisce il browser (così un altro utente parte da zero). */
   async function esci() {
-    if (ls.getItem(SPORCO) === '1') await manda()
+    await manda()
     await fetch('/api/logout', { method: 'POST', credentials: 'same-origin' }).catch(() => {})
     attivo = false
     for (const k of chiaviApp()) rmOrig.call(ls, k)
-    rmOrig.call(ls, SPORCO); rmOrig.call(ls, BASE)
+    rmOrig.call(ls, CAMBIATE); rmOrig.call(ls, BASE); rmOrig.call(ls, 'studio-sync:sporco')
     attivo = true
   }
 
   window.studioSync = { avvia, esci, manda }
-  // nelle pagine delle lezioni non c'è il login: basta mandare ciò che era rimasto indietro
+  // nelle pagine delle lezioni non c'è il login: si allinea e manda ciò che era rimasto indietro
   if (document.documentElement.dataset.sync === 'lezione') avvia()
 })()
