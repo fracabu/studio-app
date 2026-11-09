@@ -2,6 +2,7 @@ import { useEffect, useState, type CSSProperties } from 'react'
 import { lezionePerCompito, urlLezione } from '../data/lezioni'
 import { MATERIE } from '../data/materie'
 import { ORARIO } from '../data/orario'
+import { EXTRA_ZAINO } from '../data/zaino'
 import { RARITA } from '../data/personaggi'
 import { aggiornaCompito, useCompiti } from '../lib/compiti'
 import { chiave, spostaGiorniScuola } from '../lib/date'
@@ -48,7 +49,8 @@ export function Oggi({ adesso }: { adesso: Date }) {
   const eDomani = dataProssimo.getDate() === new Date(adesso.getFullYear(), adesso.getMonth(), adesso.getDate() + 1).getDate()
   const quando = eDomani ? 'domani' : fmtGiorno.format(dataProssimo)
   const materieZaino = [...new Set(giornoProssimo.ore)].map((id) => MATERIE[id])
-  const [fatti, cambia] = useZaino(`zaino-${adesso.toDateString()}`)
+  const extraZaino = EXTRA_ZAINO[dataProssimo.getDay()] ?? []
+  const [fatti, cambia] = useZaino(`studio-app:zaino:${adesso.toDateString()}`) // col prefisso: così si sincronizza col database
   const compitiProssimi = compiti.filter((c) => c.perIl === chiave(dataProssimo))
 
   const { p: compagno } = personaggioDelGiorno(premi, adesso)
@@ -171,6 +173,14 @@ export function Oggi({ adesso }: { adesso: Date }) {
                   <label>
                     <input type="checkbox" checked={fatti.includes(m.id)} onChange={() => cambia(m.id)} />
                     <span>{m.nome}</span>
+                  </label>
+                </li>
+              ))}
+              {extraZaino.map((x) => (
+                <li key={x.id} className="zaino-extra" style={coloreMateria(0, 0)}>
+                  <label>
+                    <input type="checkbox" checked={fatti.includes(x.id)} onChange={() => cambia(x.id)} />
+                    <span><span aria-hidden="true">{x.icona}</span> {x.nome}</span>
                   </label>
                 </li>
               ))}

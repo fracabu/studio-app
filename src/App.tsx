@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { esci } from './components/Accesso'
 import { Avatar } from './components/Avatar'
 import { Diario } from './components/Diario'
 import { Icona } from './components/Icona'
@@ -100,6 +101,7 @@ export function App() {
                     {p.nome}
                   </button>
                 ))}
+                <button role="menuitem" className="tavolozza-esci" onClick={esci}>Esci ↩</button>
               </div>
             )}
           </div>

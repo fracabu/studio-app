@@ -23,7 +23,18 @@ App di studio per uno studente di prima media: orario, diario dei compiti, mater
 - Prima di scrivere sul diario c'è sempre la **revisione** (`Revisione.tsx`): materia, testo, data correggibili.
 - ▶ su ogni pagina legge i compiti a voce (`src/lib/voce.ts`); "Ascolta" riproduce la dettatura, "Screen" riapre l'immagine.
 
-## Dove si salvano i dati (per ora nel browser)
+## Online, login e database
+- **Vercel**: progetto `studio-app` (fracabus-projects), https://studio-app-omega-five.vercel.app. Deploy dal PC con `npx vercel deploy --prod`: l'integrazione con GitHub non vede la repo, quindi niente deploy automatico. Repo pubblica `fracabu/studio-app`: **niente nomi di persone né credenziali nei file**.
+- **Neon** (Postgres, Francoforte, dall'integrazione Vercel, piano Free): tabelle `utenti` (hash scrypt) e `progressi` (un JSONB con tutte le chiavi `studio-app:*` del browser). Le variabili stanno in `.env.local` (`vercel env pull`), più `SESSION_SECRET` (cookie firmato, 60 giorni).
+- `api/` = login, logout, io, progressi (`_lib.ts` comune). In locale le stesse funzioni passano da `server/api-locale.ts`.
+- `public/sync.js` (caricato da `index.html` e dalle lezioni) sincronizza localStorage ↔ database: modifica → invio dopo 1,5 s; all'avvio, se ci sono modifiche non inviate vince il browser, altrimenti vince il server. **Le chiavi nuove devono iniziare con `studio-app:`**, altrimenti non si sincronizzano (lo zaino non lo faceva). IndexedDB (audio, screen) resta sul dispositivo.
+- `src/components/Accesso.tsx`: login prima dell'app; "Esci" sta nel menu Colori. Utenti: `node --env-file=.env.local scripts/crea-utente.mjs <nome> <password>`. Utente di Edo: `edo`.
+- Online non ci sono la lettura degli screen né la voce di Sbrigo (fumetto soltanto). Il video della lezione online arriva da Drive (`DRIVE_ID` nella pagina, cartella «Video lezioni - Scienze» su fracabu, accesso con link).
+
+## Zaino
+Materie del prossimo giorno di scuola più le cose fisse in `src/data/zaino.ts`: lunedì cartellina di arte, libro e portalistini di pianoforte, scarpe da ginnastica; mercoledì cartellina di tecnica, ukulele, scarpe da ginnastica.
+
+## Dove si salvano i dati nel browser
 - localStorage: compiti (`studio-app:compiti`), stelle/personaggi (`studio-app:premi`), palette, zaino, senso della data degli screen.
 - IndexedDB `studio-app`: `audio` (dettature) e `file` (screen).
 - All'avvio `navigator.storage.persist()`. Verificato: tutto resta dopo aver chiuso e riaperto il browser. Limite: i dati sono **per browser** (PC e telefono non li condividono).

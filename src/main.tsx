@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { App } from './App'
+import { Accesso } from './components/Accesso'
 import './styles.css'
 
 // Compiti, stelle e personaggi stanno in localStorage; audio e screen in IndexedDB.
@@ -9,6 +10,8 @@ navigator.storage?.persist?.().catch(() => {})
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <Accesso>
+      <App />
+    </Accesso>
   </StrictMode>,
 )

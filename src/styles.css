@@ -611,3 +611,36 @@ button { font: inherit; color: inherit; }
   background: var(--accento); color: var(--accento-testo); border: 2px solid var(--inchiostro); border-radius: 8px; padding: 3px 10px; box-shadow: 0 3px 0 var(--inchiostro); }
 .bottone-lezione:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--inchiostro); }
 .link-lezione { font-weight: 800; }
+/* ── Accesso (login) ─────────────────────────────────────── */
+.accesso { height: 100%; display: grid; place-items: center; padding: 16px; }
+.accesso-attesa { color: #fff; font-family: var(--font-gioco); font-size: 1.4rem; }
+.accesso-foglio {
+  position: relative; width: min(380px, 100%); display: grid; gap: 14px;
+  background: var(--foglio); border: 3px solid var(--inchiostro); border-radius: 14px;
+  padding: 34px 26px 26px; box-shadow: 0 8px 0 var(--inchiostro); transform: rotate(-1deg);
+}
+.accesso-etichetta {
+  position: absolute; top: -18px; left: 20px; transform: rotate(-4deg);
+  background: var(--linguetta); color: var(--linguetta-testo); font-family: var(--font-mano); font-size: 1.2rem;
+  border: 3px solid var(--inchiostro); border-radius: 8px; padding: 0 12px;
+}
+.accesso-foglio h1 { font-size: 2.1rem; }
+.accesso-foglio label { display: grid; gap: 4px; font-weight: 800; }
+.accesso-foglio input {
+  font: inherit; font-size: 1.1rem; padding: 10px 12px; color: var(--inchiostro);
+  border: 3px solid var(--inchiostro); border-radius: 10px; background: #fff;
+}
+.accesso-errore { margin: 0; color: var(--penna-rossa); font-weight: 800; }
+.accesso-entra {
+  cursor: pointer; font-family: var(--font-gioco); font-size: 1.3rem; padding: 10px;
+  background: var(--accento); color: var(--accento-testo);
+  border: 3px solid var(--inchiostro); border-radius: 12px; box-shadow: 0 5px 0 var(--inchiostro);
+}
+.accesso-entra:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--inchiostro); }
+.accesso-entra:disabled { opacity: .6; cursor: default; }
+.accesso-offline {
+  position: fixed; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 50; margin: 0;
+  background: var(--stella); color: var(--inchiostro); font-weight: 800; font-size: .9rem;
+  border: 2px solid var(--inchiostro); border-radius: 999px; padding: 4px 14px;
+}
+.tavolozza-esci { border-top: 2px dashed var(--linea) !important; margin-top: 4px; font-weight: 800; color: var(--penna-rossa) !important; }
