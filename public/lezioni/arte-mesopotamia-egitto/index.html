@@ -277,7 +277,7 @@ function apri(nome) {
 /* ── Video ──
    Sul PC di casa c'è video.mp4 accanto alla pagina (fuori da git). Online non c'è:
    si passa al video su Google Drive (come scienze-temperatura). Finché DRIVE_ID è vuoto, "in preparazione". */
-const DRIVE_ID = ''
+const DRIVE_ID = '1SI8f0fzHcigL46px4E0GlNaRnBLvL16R'
 function fermaVideo() {
   const v = document.getElementById('video'); if (v) v.pause()
   const f = document.getElementById('video-box').querySelector('iframe'); if (f && f.src !== 'about:blank') { const s = f.src; f.src = 'about:blank'; f.dataset.src = s }
