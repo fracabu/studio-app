@@ -154,7 +154,7 @@ export function Oggi({ adesso }: { adesso: Date }) {
                         </span>
                       </label>
                       {lezionePerCompito(c) && (
-                        <a className="bottone-lezione" href={urlLezione(lezionePerCompito(c)!, 'video')}>
+                        <a className="bottone-lezione" href={urlLezione(lezionePerCompito(c)!)}>
                           ▶ Lezione
                         </a>
                       )}

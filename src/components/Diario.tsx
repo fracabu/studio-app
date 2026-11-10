@@ -315,7 +315,7 @@ function PaginaDiario({
                 {m && <mark style={coloreMateria(m.hue, m.chroma)}>{m.nome}</mark>} {c.testo}
               </span>
               {lezionePerCompito(c) && (
-                <a className="bottone-lezione" href={urlLezione(lezionePerCompito(c)!, 'video')}>▶ Lezione</a>
+                <a className="bottone-lezione" href={urlLezione(lezionePerCompito(c)!)}>▶ Lezione</a>
               )}
               <span className="riga-azioni">
                 {c.audioId && (

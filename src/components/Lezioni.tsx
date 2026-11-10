@@ -1,4 +1,4 @@
-import { LEZIONI, urlLezione, type Lezione } from '../data/lezioni'
+import { LEZIONI, NOMI_SEZIONI, urlLezione, type Lezione } from '../data/lezioni'
 import { MATERIE } from '../data/materie'
 import { usePremi } from '../lib/premi'
 import { coloreMateria } from './Cella'
@@ -30,7 +30,7 @@ export function Lezioni() {
             const giorno = l.perIl[0] ? new Date(l.perIl[0] + 'T12:00') : null
             return (
               <li key={l.id} className="scheda-lezione" style={coloreMateria(m.hue, m.chroma)}>
-                <a className="copertina" href={urlLezione(l, 'video')}>
+                <a className="copertina" href={urlLezione(l)}>
                   <span className="copertina-materia">{m.emoji} {m.nome}</span>
                   <span className="copertina-titolo">{l.titolo}</span>
                   <span className="copertina-play" aria-hidden="true">▶</span>
@@ -45,10 +45,9 @@ export function Lezioni() {
                     </span>
                   </p>
                   <div className="scheda-lezione-azioni">
-                    <a className="bottone-secondario" href={urlLezione(l, 'video')}>🎬 Video</a>
-                    <a className="bottone-secondario" href={urlLezione(l, 'scheda')}>📄 Scheda</a>
-                    <a className="bottone-secondario" href={urlLezione(l, 'esercizi')}>✏️ Esercizi</a>
-                    <a className="bottone-secondario" href={urlLezione(l, 'quiz')}>⭐ Quiz</a>
+                    {l.sezioni.map((v) => (
+                      <a key={v} className="bottone-secondario" href={urlLezione(l, v)}>{NOMI_SEZIONI[v]}</a>
+                    ))}
                   </div>
                 </div>
               </li>
