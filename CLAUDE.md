@@ -20,6 +20,7 @@ App di studio per uno studente di prima media: orario, diario dei compiti, mater
 ## Diario: come entrano i compiti
 - **Dettatura** (`src/lib/dettatura.ts`, Web Speech it-IT + audio registrato). Parser `capisciCompiti()` in `src/lib/compiti.ts`: un giorno detto da solo vale per i compiti che seguono; "per lunedì" dopo un compito vale per quel compito; senza giorno → prossima lezione della materia. Microfono solo da localhost o https.
 - **Screen** (carica, trascina o Ctrl+V): `server/leggi-screen.ts`, plugin di Vite su `/api/leggi-screen`, lancia `claude -p` (sonnet, solo Read) con avvio leggero, ~11–23 s (le opzioni sono commentate nel file: senza, 100 s). Screen e risposte in `dati/screen/` (fuori da git, dati di famiglia). Claude **copia** la data del gruppo (`dataScreen`); l'app la tratta come **giorno di consegna** (confermato dall'utente sul registro vero, Argo), interruttore "assegnati" nel pannello.
+- Gli screen si sovrappongono (lo stesso compito ricompare per giorni): i compiti già sul diario (stesso giorno, stessa materia, ≥80% delle parole) non si riscrivono (`giaSulDiario`, pulsante "Rimettili"). Il registro elenca i giorni dal più lontano al più vicino: i compiti sopra la prima data visibile (intestazione tagliata) vanno alla lezione **dopo** quella data, con avviso.
 - Prima di scrivere sul diario c'è sempre la **revisione** (`Revisione.tsx`): materia, testo, data correggibili.
 - ▶ su ogni pagina legge i compiti a voce (`src/lib/voce.ts`); "Ascolta" riproduce la dettatura, "Screen" riapre l'immagine.
 

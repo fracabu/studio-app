@@ -58,6 +58,28 @@ export const aggiornaCompito = (id: string, modifica: Partial<Compito>) =>
   salva(cache.map((c) => (c.id === id ? { ...c, ...modifica } : c)))
 export const eliminaCompito = (id: string) => salva(cache.filter((c) => c.id !== id))
 
+const parole = (s: string) =>
+  s
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .split(/[^a-z0-9]+/)
+    .filter((p) => p.length > 1)
+
+/**
+ * Lo stesso compito è già sul diario? Stesso giorno, stessa materia (o materia ignota) e quasi
+ * tutte le sue parole già scritte nei compiti di quel giorno: gli screen si sovrappongono
+ * (lo stesso compito ricompare per giorni) e a volte uno era stato diviso in due.
+ */
+export function giaSulDiario(b: { materia: MateriaId | null; testo: string; perIl: string }, esistenti = cache): boolean {
+  const stessi = esistenti.filter((c) => c.perIl === b.perIl && (!b.materia || !c.materia || c.materia === b.materia))
+  if (!stessi.length) return false
+  const scritte = new Set(stessi.flatMap((c) => parole(c.testo)))
+  const sue = parole(b.testo)
+  if (!sue.length) return false
+  return sue.filter((p) => scritte.has(p)).length / sue.length >= 0.8
+}
+
 /* ── Dal testo dettato ai compiti ─────────────────────── */
 
 const ALIAS: [RegExp, MateriaId][] = [

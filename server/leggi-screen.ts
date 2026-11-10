@@ -46,7 +46,8 @@ Rispondi SOLO con un array JSON, senza nessun testo prima o dopo, in questo form
 [{"materia": "<id>" | null, "testo": "...", "dataScreen": "YYYY-MM-DD" | null, "perIl": "YYYY-MM-DD" | null, "assegnatoIl": "YYYY-MM-DD" | null}]
 
 Regole:
-- materia: uno degli id elencati sotto. Se il registro scrive "ITALIANO" con un prefisso (Ant:, Gramm:, Epica:) usa antologia, grammatica o epica; "italiano" solo se non si capisce quale. Se la materia non si capisce, null.
+- materia: uno degli id elencati sotto. Se il registro scrive "ITALIANO" con un prefisso (Ant:, Gramm:, Epica:) usa antologia, grammatica o epica; "italiano" solo se non si capisce quale. Se il nome della materia è tagliato fuori dallo screen ma il contenuto la rende evidente (per esempio religioni antiche e preghiere → religione), usa quella. Se la materia non si capisce, null.
+- Restituisci i compiti nello stesso ordine in cui compaiono nello screen, dall'alto in basso.
 - testo: cosa c'è da fare, breve e chiaro come sul diario (per esempio "Pagina 45 esercizi 1, 2 e 3"). Non ripetere il nome della materia.
 - Se per la stessa materia ci sono cose diverse (esercizi e studio), fai un compito per ciascuna.
 - dataScreen: la data sotto cui il compito compare nello screen (l'intestazione del gruppo, per esempio "giovedì 29 ottobre 2026"). NON interpretarla: copiala e basta. Se non c'è, null.

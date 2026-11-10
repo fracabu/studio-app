@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { MATERIE, type MateriaId } from '../data/materie'
 import { salvaFile } from '../lib/audio'
-import { aggiungiCompiti, nuovoId, type Bozza } from '../lib/compiti'
+import { aggiungiCompiti, giaSulDiario, nuovoId, type Bozza } from '../lib/compiti'
 import { contestoScuola } from '../lib/contesto'
 import { chiave, daChiave, prossimaLezione, spostaGiorniScuola } from '../lib/date'
 import { Revisione } from './Revisione'
@@ -50,17 +50,33 @@ const eData = (s: string | null): s is string => Boolean(s && /^\d{4}-\d{2}-\d{2
  * 3. data del gruppo nello screen → è la consegna, oppure (se impostato) l'assegnazione;
  * 4. niente date → prossima lezione da oggi.
  */
+/**
+ * Compiti in cima allo screen, sopra la prima data visibile: la loro intestazione è stata tagliata.
+ * Il registro mette i giorni dal più lontano al più vicino, quindi quel giorno viene DOPO la prima
+ * data visibile. Restituisce quanti sono e quella data (se le date scendono davvero).
+ */
+function intestazioneTagliata(letti: Letto[]): { quanti: number; primaData: string } | null {
+  const datati = letti.map((l) => l.dataScreen).filter(eData)
+  const quanti = letti.findIndex((l) => eData(l.dataScreen))
+  if (quanti <= 0 || datati.length < 2) return null
+  const scendono = datati.every((d, i) => i === 0 || d <= datati[i - 1])
+  return scendono && datati[0] !== datati.at(-1) ? { quanti, primaData: datati[0] } : null
+}
+
 function aBozze(letti: Letto[], oggi: Date, senso: SensoData): Bozza[] {
   const dopo = (materia: MateriaId | null, base: Date) =>
     (materia && prossimaLezione(materia, base)) ?? spostaGiorniScuola(base, 1)
+  const tagliata = intestazioneTagliata(letti)
   return letti
-    .filter((l) => l.testo?.trim())
-    .map((l) => {
+    .map((l, i) => ({ l, tagliato: tagliata !== null && i < tagliata.quanti }))
+    .filter(({ l }) => l.testo?.trim())
+    .map(({ l, tagliato }) => {
       const materia = l.materia && l.materia in MATERIE ? (l.materia as MateriaId) : null
       let quando: Date
       if (eData(l.perIl)) quando = daChiave(l.perIl)
       else if (eData(l.assegnatoIl)) quando = dopo(materia, daChiave(l.assegnatoIl))
       else if (eData(l.dataScreen)) quando = senso === 'consegna' ? daChiave(l.dataScreen) : dopo(materia, daChiave(l.dataScreen))
+      else if (tagliato && tagliata) quando = dopo(materia, daChiave(tagliata.primaData))
       else quando = dopo(materia, oggi)
       return { id: nuovoId(), materia, testo: l.testo.trim(), perIl: chiave(quando) }
     })
@@ -71,18 +87,27 @@ export function LeggiScreen({ immagini, oggi, onChiudi, onSalvato }: Props) {
   const [letti, setLetti] = useState<Letto[]>([])
   const [senso, setSenso] = useState<SensoData>(sensoSalvato)
   const [bozze, setBozze] = useState<Bozza[]>([])
+  const [doppioni, setDoppioni] = useState<Bozza[]>([])
 
   /** Cambiare il senso della data ricalcola i giorni (le correzioni a mano si perdono). */
+  /** Divide le bozze: quelle nuove da rivedere e quelle già scritte sul diario (da altri screen). */
+  function preparaBozze(l: Letto[], s: SensoData) {
+    const tutte = aBozze(l, oggi, s)
+    setBozze(tutte.filter((b) => !giaSulDiario(b)))
+    setDoppioni(tutte.filter((b) => giaSulDiario(b)))
+  }
+
   function cambiaSenso(s: SensoData) {
     setSenso(s)
-    setBozze(aBozze(letti, oggi, s))
+    preparaBozze(letti, s)
     try {
       localStorage.setItem(CHIAVE_SENSO, s)
     } catch {
       /* vale solo per questa volta */
     }
   }
-  const ciSonoDateScreen = letti.some((l) => eData(l.dataScreen) && !eData(l.perIl) && !eData(l.assegnatoIl))
+  const tagliata = intestazioneTagliata(letti)
+  const ciSonoDateScreen =letti.some((l) => eData(l.dataScreen) && !eData(l.perIl) && !eData(l.assegnatoIl))
   const [errore, setErrore] = useState('')
   const [tentativo, setTentativo] = useState(0)
   const [anteprime, setAnteprime] = useState<string[]>([])
@@ -117,7 +142,7 @@ export function LeggiScreen({ immagini, oggi, onChiudi, onSalvato }: Props) {
         if (!r.ok) throw new Error(dati.errore ?? `Errore ${r.status}`)
         if (annullato) return
         setLetti(dati.compiti as Letto[])
-        setBozze(aBozze(dati.compiti as Letto[], oggi, senso))
+        preparaBozze(dati.compiti as Letto[], senso)
         setStato('pronto')
       } catch (e) {
         if (annullato) return
@@ -187,8 +212,31 @@ export function LeggiScreen({ immagini, oggi, onChiudi, onSalvato }: Props) {
               </label>
             </fieldset>
           )}
+          {tagliata && (
+            <p className="avviso">
+              {tagliata.quanti === 1 ? 'Il primo compito sta' : `I primi ${tagliata.quanti} compiti stanno`} sotto
+              una data tagliata fuori dallo screen: li ho messi alla lezione dopo il{' '}
+              {daChiave(tagliata.primaData).toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })}.
+              Controlla il giorno.
+            </p>
+          )}
           <h3>Ho letto questi compiti</h3>
           <Revisione bozze={bozze} onChange={setBozze} />
+          {doppioni.length > 0 && (
+            <p className="tenue">
+              {doppioni.length === 1 ? '1 compito era già' : `${doppioni.length} compiti erano già`} sul diario
+              (da uno screen di prima): non li riscrivo ({doppioni.map((d) => (d.materia ? MATERIE[d.materia].nome : 'senza materia')).join(', ')}).{' '}
+              <button
+                className="link"
+                onClick={() => {
+                  setBozze([...bozze, ...doppioni])
+                  setDoppioni([])
+                }}
+              >
+                Rimettili
+              </button>
+            </p>
+          )}
           <div className="azioni">
             <button className="primario" disabled={bozze.length === 0} onClick={salva}>
               Scrivi sul diario
