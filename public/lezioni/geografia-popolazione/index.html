@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="it" data-sync="lezione">
+<head>
+<meta charset="utf-8" />
+<!-- stelle e risposte finiscono anche nel database, se nell'app si è fatto il login -->
+<script src="/sync.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>La popolazione</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Lilita+One&family=Patrick+Hand&display=swap" rel="stylesheet" />
+<style>
+  /* Stesso stile dell'app (src/styles.css), palette "Rosso fuoco". */
+  :root {
+    --sfondo: #c2352b; --quadretto-fondo: rgba(255,255,255,.14); --barra: #7d1d17;
+    --linguetta: #ffd23f; --linguetta-testo: #3a0d09; --accento: #2b59ff; --accento-testo: #fff;
+    --inchiostro: #3a0d09; --foglio: #fff;
+    --inchiostro-tenue: color-mix(in oklab, var(--inchiostro) 62%, #fff);
+    --linea: color-mix(in oklab, var(--inchiostro) 14%, #fff);
+    --penna-rossa: #d0342c; --stella: #ffd23f; --ombra: 0 5px 0 rgba(0,0,0,.25);
+    --verde: oklch(0.9 0.1 150); --verde-forte: oklch(0.55 0.14 150);
+    --font: 'Nunito', system-ui, sans-serif; --font-gioco: 'Lilita One', 'Nunito', sans-serif; --font-mano: 'Patrick Hand', 'Nunito', sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; overflow: hidden; color: var(--inchiostro); font-family: var(--font); font-size: 17px; line-height: 1.45;
+    background-color: var(--sfondo);
+    background-image: linear-gradient(var(--quadretto-fondo) 2px, transparent 2px), linear-gradient(90deg, var(--quadretto-fondo) 2px, transparent 2px);
+    background-size: 28px 28px;
+  }
+  h1, h2, h3 { margin: 0; font-weight: 400; font-family: var(--font-gioco); line-height: 1.1; }
+  button { font: inherit; color: inherit; }
+  sup { font-size: .7em; line-height: 0; }
+  :focus-visible { outline: 3px solid var(--stella); outline-offset: 2px; border-radius: 4px; }
+  .telaio { height: 100dvh; display: flex; flex-direction: column; }
+  .barra { flex: none; display: flex; align-items: center; gap: 14px; padding: 8px 16px; background: var(--barra); color: #fff; box-shadow: 0 4px 0 rgba(0,0,0,.25); flex-wrap: wrap; }
+  .indietro { color: #fff; text-decoration: none; font-weight: 800; border: 2px solid rgba(255,255,255,.45); border-radius: 999px; padding: 3px 12px; }
+  .titolo { font-family: var(--font-gioco); font-size: 1.35rem; }
+  .titolo small { font-family: var(--font-mano); font-size: 1.05rem; opacity: .8; margin-left: 6px; }
+  .linguette { display: flex; gap: 10px; margin-left: auto; }
+  .linguette button {
+    cursor: pointer; border: 0; min-width: 84px; padding: 6px 12px 4px; background: var(--linguetta); color: var(--linguetta-testo);
+    font-family: var(--font-mano); font-size: 1.2rem; line-height: 1; border-radius: 5px; box-shadow: 0 4px 0 rgba(0,0,0,.3); transform: rotate(-2deg);
+  }
+  .linguette button:nth-child(even) { transform: rotate(1.5deg); }
+  .linguette button[aria-selected='true'] { background: #fff; color: var(--inchiostro); transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,.3); }
+  .contatore { display: inline-flex; gap: 6px; align-items: center; padding: 2px 12px 2px 9px; border-radius: 999px; background: var(--stella); color: #3a2400; font-family: var(--font-gioco); font-size: 1.15rem; border: 3px solid #3a2400; box-shadow: 0 3px 0 #3a2400; }
+  main { flex: 1; min-height: 0; width: 100%; max-width: 1100px; margin: 0 auto; padding: 30px 16px 16px; }
+  .vista { height: 100%; display: none; }
+  .vista.attiva { display: flex; flex-direction: column; }
+  .pannello { position: relative; flex: 1; min-height: 0; background: var(--foglio); border-radius: 6px; padding: 26px 22px 18px; box-shadow: var(--ombra); display: flex; flex-direction: column; }
+  .etichetta { position: absolute; top: -17px; left: 14px; background: #fff; padding: 2px 12px 0; border: 2px solid var(--inchiostro); border-radius: 6px; font-family: var(--font-mano); font-size: 1.3rem; transform: rotate(-2deg); }
+  .scorre { flex: 1; min-height: 0; overflow-y: auto; padding-right: 6px; }
+  .evid { background: linear-gradient(transparent 40%, var(--verde) 40% 90%, transparent 90%); padding: 0 2px; font-weight: 800; }
+  .bottone { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; background: var(--accento); color: var(--accento-testo); font-family: var(--font-gioco); font-size: 1.1rem; border: 3px solid var(--inchiostro); border-radius: 10px; padding: 8px 18px; box-shadow: 0 4px 0 var(--inchiostro); }
+  .bottone.bianco { background: #fff; color: var(--inchiostro); }
+  .bottone:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--inchiostro); }
+  .bottone:disabled { opacity: .45; cursor: default; }
+  .nota { color: var(--inchiostro-tenue); font-size: .95rem; }
+
+  /* Video */
+  .video-box { position: relative; flex: 1; min-height: 0; display: grid; place-items: center; background: #000; border-radius: 6px; overflow: hidden; }
+  /* assoluto: così il video si adatta al riquadro (intero, con i comandi) invece di allargarlo */
+  video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; display: block; }
+  .video-box iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; }
+  .manca { color: #fff; text-align: center; font-family: var(--font-mano); font-size: 1.4rem; padding: 20px; }
+  .sotto-video { display: flex; align-items: center; gap: 14px; margin-top: 12px; flex-wrap: wrap; }
+
+  /* Scheda */
+  .schede { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 26px 22px; padding-top: 14px; }
+  .carta { border: 2px solid var(--linea); border-radius: 8px; padding: 14px 16px; }
+  .carta h2 { font-size: 1.35rem; margin-bottom: 6px; }
+  .carta h2 .num { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--linguetta); border: 2px solid var(--inchiostro); margin-right: 6px; font-size: 1rem; }
+  .carta p { margin: 6px 0; }
+  .carta ul { margin: 6px 0; padding-left: 20px; }
+  .formula { font-family: var(--font-gioco); font-size: 1.15rem; background: #fff7d6; border: 2px dashed var(--inchiostro); border-radius: 8px; padding: 6px 10px; margin: 6px 0; display: inline-block; }
+  .attento { background: #ffe3e0; border-left: 5px solid var(--penna-rossa); border-radius: 6px; padding: 8px 12px; margin: 8px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: .95rem; margin-top: 6px; }
+  th, td { border-bottom: 1px solid var(--linea); padding: 6px; text-align: left; vertical-align: top; }
+  th { font-family: var(--font-gioco); font-weight: 400; }
+  td.f { font-family: var(--font-gioco); white-space: nowrap; }
+  .larga { grid-column: 1 / -1; }
+
+  /* Esercizi */
+  .esercizio { border: 2px solid var(--linea); border-radius: 8px; padding: 14px 16px; margin-bottom: 18px; }
+  .esercizio h3 { font-size: 1.2rem; margin-bottom: 4px; }
+  .metodo { background: #f3f7ff; border-left: 5px solid var(--accento); border-radius: 6px; padding: 8px 12px; margin: 8px 0; }
+  .soluzione { display: none; background: var(--verde); border-radius: 6px; padding: 8px 12px; margin-top: 8px; font-family: var(--font-mano); font-size: 1.15rem; }
+  .soluzione.aperta { display: block; }
+
+  /* Quiz */
+  .quiz { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; padding-bottom: 8px; }
+  .progresso { display: flex; gap: 5px; }
+  .progresso i { flex: 1; height: 10px; border-radius: 5px; background: var(--linea); }
+  .progresso i.giusta { background: var(--verde-forte); }
+  .progresso i.sbagliata { background: var(--penna-rossa); }
+  .progresso i.ora { background: var(--linguetta); outline: 2px solid var(--inchiostro); }
+  .domanda-quiz { font-family: var(--font-gioco); font-size: clamp(1.3rem, 3.4vh, 1.8rem); }
+  .risposte { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .risposte button { cursor: pointer; text-align: left; background: #fff; border: 3px solid var(--inchiostro); border-radius: 10px; padding: 12px 14px; box-shadow: 0 4px 0 var(--inchiostro); font-weight: 700; font-size: 1.15rem; }
+  .risposte button:disabled { cursor: default; }
+  .risposte button.giusta { background: var(--verde); }
+  .risposte button.sbagliata { background: #ffd0cc; text-decoration: line-through; }
+  .spiega { min-height: 3em; font-weight: 600; }
+  .spiega b { font-family: var(--font-gioco); font-weight: 400; font-size: 1.2rem; }
+  .fine { flex: 1; display: grid; place-items: center; text-align: center; }
+  .fine h2 { font-size: 2.4rem; }
+  .stelle-grandi { font-size: 2.6rem; letter-spacing: 4px; }
+
+  @media (max-width: 760px) {
+    .linguette { margin-left: 0; width: 100%; justify-content: space-between; }
+    .linguette button { min-width: 0; flex: 1; }
+    .schede, .risposte { grid-template-columns: 1fr; }
+    main { padding-top: 26px; }
+  }
+  /* Geografia: evidenziatore verde-giallo (hue 100) */
+  .evid { background: linear-gradient(transparent 40%, oklch(0.9 0.12 120) 40% 90%, transparent 90%); }
+  .piramidi { display: flex; gap: 22px; flex-wrap: wrap; margin-top: 8px; }
+  .piramide { flex: 1; min-width: 220px; text-align: center; }
+  .piramide svg { width: 100%; max-width: 300px; height: auto; display: block; margin: 0 auto; }
+  .piramide b { font-family: var(--font-gioco); font-weight: 400; font-size: 1.1rem; }
+  .parola { font-family: var(--font-mano); font-size: 1.15rem; }
+</style>
+</head>
+<body>
+<div class="telaio">
+  <header class="barra">
+    <a class="indietro" href="/#lezioni">← App</a>
+    <h1 class="titolo">La popolazione <small>Geografia · pag. B4–B6</small></h1>
+    <nav class="linguette" role="tablist">
+      <button role="tab" data-vista="scheda" aria-selected="true">📄 Scheda</button>
+      <button role="tab" data-vista="esercizi" aria-selected="false">✏️ Esercizi</button>
+      <button role="tab" data-vista="quiz" aria-selected="false">⭐ Quiz</button>
+    </nav>
+    <span class="contatore" title="Le tue stelle">★ <span id="stelle">0</span></span>
+  </header>
+
+  <main>
+    <!-- SCHEDA -->
+    <section class="vista attiva" id="vista-scheda">
+      <div class="pannello">
+        <span class="etichetta">Scheda per studiare</span>
+        <div class="scorre">
+          <div class="schede">
+            <div class="carta">
+              <h2><span class="num">1</span>Popolazione e demografia</h2>
+              <p>La <span class="evid">popolazione</span> è l'insieme delle persone che vivono in un certo luogo.</p>
+              <p>La <span class="evid">demografia</span> è la scienza che la studia raccogliendo e analizzando <b>dati statistici</b>.</p>
+              <p>Da dove arrivano i dati? Dall'<b>anagrafe del Comune</b> (nascite, morti, matrimoni…) e dai <b>censimenti</b>, cioè i grandi conteggi di tutti gli abitanti.</p>
+              <p class="nota parola">📖 Demografia = dal greco <i>dèmos</i> (popolo) + <i>gràphein</i> (scrivere): "descrizione del popolo". <i>Dèmos</i> + <i>kràtos</i> (potere) = <b>democrazia</b>, "potere del popolo".</p>
+            </div>
+            <div class="carta">
+              <h2><span class="num">2</span>I sei dati della popolazione</h2>
+              <table>
+                <tr><th>Dato</th><th>Che cosa dice</th><th>In Europa</th></tr>
+                <tr><td><b>Grandezza</b></td><td>quanti abitanti ci sono</td><td>più di 720 milioni</td></tr>
+                <tr><td><b>Densità</b></td><td>quante persone in media in 1 km²</td><td>circa 70 per km²</td></tr>
+                <tr><td><b>Distribuzione</b></td><td>dove si concentrano</td><td>pianure e coste</td></tr>
+                <tr><td><b>Composizione</b></td><td>quanti maschi e femmine, di che età</td><td>meno giovani che anziani</td></tr>
+                <tr><td><b>Natalità e mortalità</b></td><td>quanti nati e morti ogni 1000 abitanti</td><td>circa 9 nati, più di 11 morti</td></tr>
+                <tr><td><b>Flussi migratori</b></td><td>quanti arrivano e quanti partono</td><td>UE 2020: circa 2 milioni arrivati, 1 milione partiti</td></tr>
+              </table>
+              <div class="formula">densità = abitanti : km²</div>
+            </div>
+            <div class="carta">
+              <h2><span class="num">3</span>A che cosa servono i dati</h2>
+              <p>Confrontando i dati di oggi con quelli degli anni passati si possono fare <span class="evid">previsioni</span>.</p>
+              <p>Così chi governa decide meglio: quante <b>scuole</b> e quanti <b>ospedali</b> aprire o chiudere, quanti soldi servono per le <b>pensioni</b>.</p>
+              <p class="nota">Immigrato = chi <b>arriva</b> a vivere in un paese. Emigrato = chi <b>parte</b> dal suo paese.</p>
+            </div>
+            <div class="carta">
+              <h2><span class="num">4</span>La piramide della popolazione</h2>
+              <p>È il grafico che mostra la <b>composizione</b>: due istogrammi a barre orizzontali, <b>maschi a sinistra</b> e <b>femmine a destra</b>. Ogni barra = 5 anni di età, dai bambini in basso agli anziani in alto.</p>
+              <div class="piramidi">
+                <div class="piramide"><svg id="pir-giovane" viewBox="0 0 300 200"></svg><b>Base larga</b><br><span class="nota">nascono tanti bambini: è una vera piramide</span></div>
+                <div class="piramide"><svg id="pir-vecchia" viewBox="0 0 300 200"></svg><b>Base stretta</b><br><span class="nota">nascono pochi bambini: è come l'Europa</span></div>
+              </div>
+            </div>
+            <div class="carta">
+              <h2><span class="num">5</span>Dove vive la gente?</h2>
+              <ul>
+                <li>Più nelle zone a <b>clima temperato</b> che in quelle troppo fredde o troppo calde.</li>
+                <li>Dove è più facile costruire: <b>pianure</b>, lungo i <b>fiumi</b>, sulle <b>coste</b>.</li>
+              </ul>
+              <p>In Europa le zone più affollate sono l'Inghilterra, il Belgio e i Paesi Bassi, la Germania occidentale (la Ruhr), la <b>Pianura Padana</b> e i dintorni di Parigi. Quasi vuoto il nord della Scandinavia e della Russia.</p>
+            </div>
+            <div class="carta">
+              <h2><span class="num">6</span>Tre grandi cambiamenti di oggi</h2>
+              <ul>
+                <li><b>Si va in città</b>: le campagne si svuotano perché lì non c'è più lavoro per tutti. Le città crescono in fretta e in disordine perché offrono sempre più servizi: è l'<span class="evid">urbanesimo</span>.</li>
+                <li><b>Si invecchia</b>: nei paesi più sviluppati ci sono sempre più anziani (si vive meglio e più a lungo) e nascono meno bambini.</li>
+                <li><b>Si migra</b>: sempre più persone vanno dai paesi poveri a quelli più ricchi.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ESERCIZI -->
+    <section class="vista" id="vista-esercizi">
+      <div class="pannello">
+        <span class="etichetta">Esercizi guidati</span>
+        <div class="scorre" id="esercizi" style="padding-top:12px"></div>
+      </div>
+    </section>
+
+    <!-- QUIZ -->
+    <section class="vista" id="vista-quiz">
+      <div class="pannello">
+        <span class="etichetta">Quiz · 1 stella per risposta giusta, +5 se fai tutto giusto</span>
+        <div class="quiz" id="quiz"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+const LEZIONE = 'geografia-popolazione'
+const VISTE = ['scheda', 'esercizi', 'quiz']
+
+/* ── Stelle: stesso archivio dell'app (src/lib/premi.ts) ── */
+const CHIAVE_PREMI = 'studio-app:premi'
+function leggiPremi() {
+  try { return { eventi: [], visti: ['bit'], delGiorno: {}, ...JSON.parse(localStorage.getItem(CHIAVE_PREMI) ?? '{}') } }
+  catch { return { eventi: [], visti: ['bit'], delGiorno: {} } }
+}
+function registra(id, tipo, stelle) {
+  const s = leggiPremi()
+  if (s.eventi.some((e) => e.id === id)) return false
+  s.eventi.push({ id, tipo, stelle, quando: new Date().toISOString() })
+  try { localStorage.setItem(CHIAVE_PREMI, JSON.stringify(s)) } catch {}
+  mostraStelle()
+  return true
+}
+function mostraStelle() {
+  document.getElementById('stelle').textContent = leggiPremi().eventi.reduce((n, e) => n + e.stelle, 0)
+}
+mostraStelle()
+
+/* ── Linguette ── */
+const linguette = document.querySelectorAll('.linguette button')
+function apri(nome) {
+  linguette.forEach((b) => b.setAttribute('aria-selected', String(b.dataset.vista === nome)))
+  document.querySelectorAll('.vista').forEach((v) => v.classList.toggle('attiva', v.id === 'vista-' + nome))
+  try { localStorage.setItem(`studio-app:lezione-${LEZIONE}:vista`, nome) } catch {}
+}
+linguette.forEach((b) => b.addEventListener('click', () => apri(b.dataset.vista)))
+addEventListener('hashchange', () => { const h = location.hash.replace('#', ''); if (VISTE.includes(h)) apri(h) })
+const daHash = location.hash.replace('#', '')
+if (VISTE.includes(daHash)) apri(daHash)
+else try { const v = localStorage.getItem(`studio-app:lezione-${LEZIONE}:vista`); if (v && VISTE.includes(v)) apri(v) } catch {}
+
+/* ── Piramidi disegnate da noi (dati inventati, solo per far vedere la forma) ──
+   valori dal basso (0-4 anni) all'alto (80+), in "barre" da 0 a 10; [maschi, femmine] */
+const PIRAMIDI = {
+  'pir-giovane': [[10, 10], [9.4, 9.3], [8.7, 8.7], [8, 8], [7.2, 7.3], [6.4, 6.5], [5.5, 5.7], [4.6, 4.9], [3.7, 4], [2.8, 3.2], [2, 2.4], [1.3, 1.7], [0.7, 1.1], [0.3, 0.6]],
+  'pir-vecchia': [[4.6, 4.4], [5, 4.8], [5.4, 5.2], [5.8, 5.6], [6.4, 6.2], [7.2, 7], [8, 7.9], [8.8, 8.8], [9.3, 9.4], [8.8, 9.1], [7.6, 8.2], [6.2, 7.2], [4.4, 5.8], [2.6, 4.6]],
+}
+function piramide(id, dati) {
+  const svg = document.getElementById(id), n = dati.length, h = 180 / n, cx = 150, k = 13
+  let s = `<line x1="${cx}" y1="5" x2="${cx}" y2="190" stroke="#3a0d09" stroke-width="2"/>`
+  dati.forEach(([m, f], i) => {
+    const y = 185 - (i + 1) * h
+    s += `<rect x="${cx - m * k}" y="${y + 1}" width="${m * k}" height="${h - 2}" fill="#2b8fe0"/>`
+    s += `<rect x="${cx}" y="${y + 1}" width="${f * k}" height="${h - 2}" fill="#f07aa6"/>`
+  })
+  s += `<text x="12" y="16" font-size="14" font-family="Patrick Hand" fill="#3a0d09">maschi</text><text x="288" y="16" font-size="14" font-family="Patrick Hand" fill="#3a0d09" text-anchor="end">femmine</text>`
+  s += `<text x="${cx}" y="199" font-size="11" font-family="Nunito" fill="#3a0d09" text-anchor="middle">↑ più anziani · ↓ bambini</text>`
+  svg.innerHTML = s
+}
+Object.entries(PIRAMIDI).forEach(([id, d]) => piramide(id, d))
+
+/* ── Esercizi (nostri, non quelli del libro) ── */
+const ESERCIZI = [
+  {
+    titolo: '1. Calcola la densità',
+    testo: 'a) Il paese di Montealto ha <b>12.000 abitanti</b> su <b>40 km²</b>.<br>b) L\'isola di Scogliobello ha <b>1.500 abitanti</b> su <b>30 km²</b>.<br>c) Quale dei due posti è più affollato?',
+    metodo: 'Usa <b>densità = abitanti : km²</b>. Il risultato si legge "abitanti per km²".',
+    soluzione: 'a) 12.000 : 40 = <b>300 ab/km²</b> · b) 1.500 : 30 = <b>50 ab/km²</b> · c) <b>Montealto</b>: in ogni km² ci sono 300 persone invece di 50.',
+  },
+  {
+    titolo: '2. Che dato è?',
+    testo: 'Di quale dato della popolazione parla ogni frase?<br>a) "Montealto ha 12.000 abitanti."<br>b) "Quasi tutti vivono vicino al lago."<br>c) "Ci sono più nonni che nipoti."<br>d) "Ogni anno nascono 8 bambini ogni 1000 abitanti."<br>e) "Quest\'anno sono arrivate 200 persone da altri paesi."<br>f) "In ogni km² vivono 300 persone."',
+    metodo: 'Ripassa la tabella della carta 2: grandezza, densità, distribuzione, composizione, natalità e mortalità, flussi migratori.',
+    soluzione: 'a) grandezza · b) distribuzione · c) composizione · d) natalità · e) flussi migratori (immigrati) · f) densità',
+  },
+  {
+    titolo: '3. Leggi le due piramidi della scheda',
+    testo: 'Guarda le due piramidi della carta 4.<br>a) In quale nascono più bambini? Come lo capisci?<br>b) In quale ci sono più anziani?<br>c) Quale delle due somiglia di più alla popolazione europea? Perché?',
+    metodo: 'In basso ci sono i bambini, in alto gli anziani. Una barra lunga = tante persone di quell\'età.',
+    soluzione: 'a) In quella a <b>base larga</b>: la barra più in basso (0-4 anni) è la più lunga. · b) In quella a <b>base stretta</b>: le barre in alto sono più lunghe. · c) Quella a <b>base stretta</b>: in Europa nascono pochi bambini e ci sono più anziani che giovani.',
+  },
+  {
+    titolo: '4. Vero o falso? Correggi le false',
+    testo: 'a) La demografia studia la popolazione con i dati statistici.<br>b) Un immigrato è una persona che lascia il suo paese.<br>c) L\'urbanesimo è il ritorno delle persone in campagna.<br>d) La gente vive soprattutto in pianura, lungo i fiumi e sulle coste.<br>e) In Europa i giovani sono più degli anziani.',
+    metodo: 'Attenzione alle parole simili: im-migrato (entra), e-migrato (esce).',
+    soluzione: 'a) <b>V</b> · b) <b>F</b>: chi parte è un <b>emigrato</b>, l\'immigrato è chi arriva · c) <b>F</b>: è lo spostamento verso le <b>città</b> · d) <b>V</b> · e) <b>F</b>: i giovani sono <b>meno</b> degli anziani',
+  },
+  {
+    titolo: '5. Spiega con parole tue',
+    testo: 'a) Perché al sindaco serve sapere quanti bambini nascono ogni anno?<br>b) Perché nelle pianure vive più gente che in alta montagna?',
+    metodo: 'Pensa a che cosa servirà a quei bambini fra qualche anno; e a com\'è costruire case, strade e campi su un terreno piatto o in salita.',
+    soluzione: 'a) Per prevedere quante <b>scuole</b>, classi e maestri serviranno fra qualche anno (e quanti asili adesso). · b) In pianura è <b>più facile costruire</b> case e strade, coltivare e spostarsi; il clima è più mite che in alta montagna.',
+  },
+]
+document.getElementById('esercizi').innerHTML = ESERCIZI.map((e, i) => `
+  <div class="esercizio">
+    <h3>${e.titolo}</h3>
+    <p>${e.testo}</p>
+    <div class="metodo">💡 <b>Come si fa:</b> ${e.metodo}</div>
+    <button class="bottone bianco" data-sol="${i}">Prova da solo, poi controlla ✔</button>
+    <div class="soluzione" id="sol-${i}">${e.soluzione}</div>
+  </div>`).join('')
+document.getElementById('esercizi').addEventListener('click', (ev) => {
+  const b = ev.target.closest('[data-sol]'); if (!b) return
+  const s = document.getElementById('sol-' + b.dataset.sol)
+  s.classList.toggle('aperta')
+  b.textContent = s.classList.contains('aperta') ? 'Nascondi la soluzione' : 'Prova da solo, poi controlla ✔'
+})
+
+/* ── Quiz (la risposta giusta è sempre la prima: poi si mescolano) ── */
+const DOMANDE = [
+  { d: 'Che cos\'è la demografia?', r: ['La scienza che studia la popolazione con i dati statistici', 'Lo studio delle montagne', 'Il governo del popolo', 'Il conteggio delle città'], s: 'Demografia = "descrizione del popolo", fatta con i numeri.' },
+  { d: 'Da dove arrivano i dati sulla popolazione?', r: ['Dall\'anagrafe dei Comuni e dai censimenti', 'Dai giornali', 'Dalle carte geografiche', 'Dai social'], s: 'L\'anagrafe registra nascite, morti e matrimoni; il censimento conta tutti gli abitanti.' },
+  { d: 'Che cos\'è la densità di popolazione?', r: ['Il numero medio di persone in 1 km²', 'Il numero totale di abitanti', 'Il numero di nati ogni anno', 'La zona dove vive più gente'], s: 'Densità = abitanti : km².' },
+  { d: 'Un paese ha 2.000 abitanti su 10 km². Qual è la densità?', r: ['200 ab/km²', '20 ab/km²', '2.010 ab/km²', '20.000 ab/km²'], s: '2.000 : 10 = 200 abitanti per km².' },
+  { d: 'La composizione della popolazione dice…', r: ['quanti maschi e femmine ci sono e di che età', 'quanti abitanti ci sono in tutto', 'dove vive la gente', 'quante persone arrivano'], s: 'Composizione = suddivisione per sesso ed età.' },
+  { d: 'Chi è un immigrato?', r: ['Chi arriva a vivere in un nuovo paese', 'Chi lascia il proprio paese', 'Chi vive in campagna', 'Un turista in vacanza'], s: 'Im-migrato entra, e-migrato esce.' },
+  { d: 'Che cosa mostra la piramide della popolazione?', r: ['Gli abitanti divisi per sesso e fasce di età', 'La densità nelle regioni', 'Le città più grandi', 'Come è cresciuta la popolazione nei secoli'], s: 'Maschi a sinistra, femmine a destra, una barra ogni 5 anni di età.' },
+  { d: 'Se la piramide ha la base stretta, vuol dire che…', r: ['nascono pochi bambini', 'nascono tantissimi bambini', 'arrivano molti immigrati', 'ci sono pochi anziani'], s: 'In basso ci sono i bambini da 0 a 4 anni: barra corta = pochi bambini. È il caso dell\'Europa.' },
+  { d: 'Dove si concentra di più la popolazione?', r: ['In pianura, lungo i fiumi e sulle coste', 'In alta montagna', 'Nei deserti', 'Vicino ai poli'], s: 'Dove il clima è temperato ed è più facile costruire.' },
+  { d: 'Che cos\'è l\'urbanesimo?', r: ['Le persone si spostano in città, che crescono in fretta e in disordine', 'Le persone tornano a vivere in campagna', 'La costruzione di nuove strade', 'L\'aumento delle nascite'], s: 'Le campagne si svuotano e le città si allargano.' },
+  { d: 'Perché nei paesi sviluppati la popolazione invecchia?', r: ['Si vive meglio e più a lungo, e nascono meno bambini', 'Nascono più bambini', 'Ci sono più guerre', 'Arrivano solo anziani'], s: 'Più anziani + meno nascite = popolazione che invecchia.' },
+  { d: 'Che cosa significa "democrazia"?', r: ['Potere del popolo', 'Descrizione del popolo', 'Popolo numeroso', 'Governo del re'], s: 'Dèmos (popolo) + kràtos (potere). Descrizione del popolo è la demografia!' },
+]
+const quiz = document.getElementById('quiz')
+let ordine, n, giuste, esiti
+function mescola(a) { return a.map((x) => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map((p) => p[1]) }
+function inizia() {
+  ordine = mescola(DOMANDE.map((_, i) => i)); n = 0; giuste = 0; esiti = []
+  mostra()
+}
+function barra() {
+  return '<div class="progresso">' + DOMANDE.map((_, i) => `<i class="${esiti[i] === true ? 'giusta' : esiti[i] === false ? 'sbagliata' : i === n ? 'ora' : ''}"></i>`).join('') + '</div>'
+}
+function mostra() {
+  if (n >= ordine.length) return finito()
+  const q = DOMANDE[ordine[n]]
+  const scelte = mescola(q.r.map((t, i) => ({ t, giusta: i === 0 })))
+  quiz.innerHTML = barra() +
+    `<p class="nota">Domanda ${n + 1} di ${DOMANDE.length}</p>
+     <h2 class="domanda-quiz">${q.d}</h2>
+     <div class="risposte">${scelte.map((c, i) => `<button data-i="${i}">${c.t}</button>`).join('')}</div>
+     <p class="spiega" id="spiega"></p>
+     <div><button class="bottone" id="avanti" disabled>Avanti →</button></div>`
+  quiz.querySelectorAll('.risposte button').forEach((b) => b.addEventListener('click', () => {
+    const c = scelte[b.dataset.i]
+    quiz.querySelectorAll('.risposte button').forEach((x) => { x.disabled = true; if (scelte[x.dataset.i].giusta) x.classList.add('giusta') })
+    if (!c.giusta) b.classList.add('sbagliata')
+    esiti[n] = c.giusta
+    if (c.giusta) { giuste++; registra(`quiz:${LEZIONE}:${ordine[n]}`, 'quiz', 1) }
+    document.getElementById('spiega').innerHTML = (c.giusta ? '<b>Giusto! ★</b> ' : '<b>Quasi…</b> ') + q.s
+    const av = document.getElementById('avanti'); av.disabled = false; av.focus()
+  }))
+  document.getElementById('avanti').addEventListener('click', () => { n++; mostra() })
+}
+function finito() {
+  const perfetto = giuste === DOMANDE.length
+  if (perfetto) registra(`quiz:${LEZIONE}:perfetto`, 'quiz', 5)
+  quiz.innerHTML = barra() + `<div class="fine"><div>
+    <h2>${perfetto ? 'Tutto giusto!' : giuste >= 9 ? 'Bravissimo!' : giuste >= 6 ? 'Bene!' : 'Si può fare meglio!'}</h2>
+    <p class="stelle-grandi">${'★'.repeat(Math.max(1, Math.round(giuste / DOMANDE.length * 5)))}</p>
+    <p><b>${giuste} su ${DOMANDE.length}</b> risposte giuste${perfetto ? ' · +5 stelle bonus' : ''}.</p>
+    <p class="nota">Le stelle valgono una volta sola per domanda: rifare il quiz serve per ripassare.</p>
+    <p><button class="bottone" id="ancora">Rifai il quiz</button></p>
+  </div></div>`
+  document.getElementById('ancora').addEventListener('click', inizia)
+}
+inizia()
+</script>
+</body>
+</html>

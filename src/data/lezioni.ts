@@ -54,6 +54,15 @@ export const LEZIONI: Lezione[] = [
     domande: 12,
     sezioni: ['video', 'scheda', 'esercizi', 'quiz'],
   },
+  {
+    id: 'geografia-popolazione',
+    materia: 'geografia',
+    titolo: 'La popolazione',
+    fonte: 'GeoAgenda 1 · cap. 6 · pag. B4-B6',
+    perIl: ['2026-11-13'],
+    domande: 12,
+    sezioni: ['scheda', 'esercizi', 'quiz'],
+  },
 ]
 
 /** Indirizzo completo: con la sola barra finale il server di Vite rimanda all'app. */
