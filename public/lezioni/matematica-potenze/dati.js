@@ -9,7 +9,7 @@ window.LEZIONE = {
   argomento: 'le potenze e le loro proprietà',
   pagine: '200–205',
   sezioni: ['video', 'scheda', 'esercizi', 'quiz', 'interroga'],
-  driveId: '',
+  driveId: '1VD4Rlo4DQf5Xg8BGbCsoAsyXCpHCE4iR',
   /* niente ascolto delle schede: con esponenti e formule la voce non aiuta. L'interrogazione resta a voce. */
   audio: false,
 
