@@ -617,12 +617,28 @@ button { font: inherit; color: inherit; }
 .accesso { height: 100%; display: grid; place-items: center; padding: 16px; }
 .accesso-attesa { color: #fff; font-family: var(--font-gioco); font-size: 1.4rem; }
 .accesso-login { display: flex; flex-direction: column; padding: 0; height: 100dvh; overflow: hidden; }
-.accesso-centro {
-  flex: 1; min-height: 0; width: 100%; max-width: 1080px; margin: 0 auto;
-  display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 400px); align-items: center;
-  gap: clamp(20px, 4vw, 56px); padding: clamp(14px, 3vh, 36px) 20px;
+/* due schermate: home (accesso-home) e modulo (accesso-modulo); se non ci stanno, scorrono dentro */
+.accesso-home, .accesso-modulo {
+  flex: 1; min-height: 0; width: 100%; overflow-y: auto;
+  display: grid; justify-items: center; padding: clamp(16px, 3vh, 36px) 16px;
 }
-.accesso-benvenuto { color: #fff; display: grid; gap: clamp(8px, 1.8vh, 16px); min-height: 0; }
+.accesso-home > *, .accesso-modulo > * { margin: auto 0; }
+.accesso-benvenuto {
+  width: min(760px, 100%); color: #fff; display: grid; justify-items: center; text-align: center;
+  gap: clamp(10px, 2vh, 18px);
+}
+.accesso-vai { font-size: 1.5rem; padding: 10px 46px; margin-top: 4px; }
+/* flex con margini automatici: centrato se c'è posto, altrimenti scorre senza tagliare la cima
+   (con align-content: center la parte alta finiva fuori e non si raggiungeva) */
+.accesso-modulo { display: flex; flex-direction: column; align-items: center; gap: 22px; }
+.accesso-modulo > * { margin: 0; flex: none; }
+.accesso-modulo > :first-child { margin-top: auto; }
+.accesso-modulo > :last-child { margin-bottom: auto; }
+.accesso-indietro {
+  justify-self: center; width: min(400px, 100%); text-align: left; cursor: pointer;
+  background: none; border: 0; padding: 0; color: #fff; font-weight: 800; font-size: 1rem;
+}
+.accesso-indietro:hover { text-decoration: underline; }
 .accesso-sopra { margin: 0; font-family: var(--font-mano); font-size: clamp(1.2rem, 2.6vh, 1.6rem); transform: rotate(-2deg); transform-origin: left; }
 .accesso-benvenuto h1 { font-size: clamp(2.4rem, 8vh, 4.6rem); line-height: .95; text-shadow: 0 5px 0 rgba(0, 0, 0, .25); }
 .accesso-fumetto {
@@ -680,16 +696,24 @@ button { font: inherit; color: inherit; }
 }
 .accesso-integra { margin: 0; color: #fff; opacity: .9; font-size: .9rem; font-weight: 600; max-width: 38em; }
 .accesso-nota b { color: var(--inchiostro); }
-@media (max-height: 760px) { .accesso-cosa { display: none; } }
-@media (max-height: 560px) { .accesso-fumetto { display: none; } }
-@media (max-width: 860px) {
-  .accesso-centro { grid-template-columns: 1fr; align-content: center; gap: 22px; padding-top: 12px; padding-bottom: 8px; }
-  .accesso-benvenuto { text-align: center; justify-items: center; }
-  .accesso-sopra { transform-origin: center; }
-  .accesso-cosa { display: none; }
-  .accesso-fumetto { font-size: .95rem; padding: 10px 12px; text-align: left; }
+.accesso-sopra { transform-origin: center; }
+.accesso-fumetto { text-align: left; }
+.accesso-fumetto::after { left: calc(50% - 11px); }
+.accesso-cosa { width: 100%; text-align: left; }
+@media (max-width: 560px) {
+  .accesso-cosa { grid-template-columns: 1fr; gap: 8px; }
+  .accesso-fumetto { font-size: .95rem; padding: 10px 12px; }
   .accesso-integra { font-size: .82rem; }
-  .accesso-benvenuto h1 { font-size: clamp(2rem, 6vh, 3rem); }
+  .accesso-benvenuto h1 { font-size: clamp(2.2rem, 11vw, 3rem); }
+}
+/* telefono in orizzontale: le 4 voci su due colonne strette, titolo più piccolo */
+@media (max-height: 520px) {
+  .accesso-benvenuto h1 { font-size: 2.2rem; }
+  /* "Entra" subito sotto il titolo, il resto si legge scorrendo */
+  .accesso-sopra, .accesso-benvenuto h1 { order: -2; }
+  .accesso-vai { order: -1; margin: 0 0 4px; }
+  .accesso-fumetto::after { display: none; }
+  .accesso-cosa li { padding: 6px 10px; }
 }
 
 /* ── Utente collegato (barra) e impostazioni ─────────────── */

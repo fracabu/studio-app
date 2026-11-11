@@ -104,7 +104,11 @@ function Login({ onEntrato, avviso }: { onEntrato: () => void; avviso: string })
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nome, password }),
       })
-      if (r.ok) return onEntrato()
+      if (r.ok) {
+        // dentro l'app #entra non è una vista: si toglie, così si parte da Oggi
+        if (location.hash === '#entra') history.replaceState(null, '', location.pathname + location.search)
+        return onEntrato()
+      }
       if (r.status === 401) setErrore('Mmm, nome o password non tornano. Controlla le lettere (maiuscole e minuscole nella password contano) e riprova!')
       else if (r.status === 400) setErrore('Scrivi sia il nome sia la password, poi premi Entra.')
       else setErrore('Il server fa i capricci: riprova tra un attimo.')
@@ -115,9 +119,26 @@ function Login({ onEntrato, avviso }: { onEntrato: () => void; avviso: string })
     }
   }
 
-  return (
+  // Due schermate: la home che spiega l'app, poi il modulo. Insieme non stavano su un telefono.
+  // Il modulo ha una voce nella cronologia (#entra), così il "indietro" del telefono torna alla home.
+  const [passo, setPasso] = useState<'home' | 'login'>(avviso || location.hash === '#entra' ? 'login' : 'home')
+  useEffect(() => {
+    const torna = () => setPasso(location.hash === '#entra' ? 'login' : 'home')
+    addEventListener('popstate', torna)
+    return () => removeEventListener('popstate', torna)
+  }, [])
+  function vaiAlLogin() {
+    if (location.hash !== '#entra') history.pushState(null, '', '#entra')
+    setPasso('login')
+  }
+  function tornaAllaHome() {
+    if (location.hash === '#entra') history.back()
+    else setPasso('home')
+  }
+
+  if (passo === 'home') return (
     <div className="accesso accesso-login">
-      <main className="accesso-centro">
+      <main className="accesso-home">
         <section className="accesso-benvenuto" aria-labelledby="titolo-benvenuto">
           <p className="accesso-sopra">Benvenuti in</p>
           <h1 id="titolo-benvenuto">Il mio studio</h1>
@@ -134,11 +155,20 @@ function Login({ onEntrato, avviso }: { onEntrato: () => void; avviso: string })
               </li>
             ))}
           </ul>
+          <button type="button" className="accesso-entra accesso-vai" onClick={vaiAlLogin}>Entra ▶</button>
           <p className="accesso-integra">
             È uno strumento in più per ripassare: non sostituisce i libri e i materiali ufficiali della scuola.
           </p>
         </section>
+      </main>
+      <Crediti />
+    </div>
+  )
 
+  return (
+    <div className="accesso accesso-login">
+      <main className="accesso-modulo">
+        <button type="button" className="accesso-indietro" onClick={tornaAllaHome}>← Indietro</button>
         <form className="accesso-foglio" onSubmit={invia} noValidate>
           <span className="accesso-etichetta">Entra</span>
           <h2>Ciao! Chi sei?</h2>
