@@ -39,7 +39,9 @@ export function Lezioni() {
                   <p className="scheda-lezione-fonte">{l.fonte}</p>
                   {giorno && <p className="scheda-lezione-per">Per {fmtGiorno.format(giorno)}</p>}
                   <p className="scheda-lezione-stato">
-                    <span className={s.video ? 'fatto' : ''}>{s.video ? '✔' : '○'} Video</span>
+                    {l.sezioni.includes('video') && (
+                      <span className={s.video ? 'fatto' : ''}>{s.video ? '✔' : '○'} Video</span>
+                    )}
                     <span className={s.giuste ? 'fatto' : ''}>
                       ★ Quiz {s.giuste}/{l.domande}{s.perfetto ? ' · perfetto!' : ''}
                     </span>

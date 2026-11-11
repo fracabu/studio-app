@@ -45,6 +45,15 @@ export const LEZIONI: Lezione[] = [
     domande: 18,
     sezioni: ['scheda', 'quiz', 'interroga', 'video'],
   },
+  {
+    id: 'matematica-potenze',
+    materia: 'matematica',
+    titolo: 'Le potenze',
+    fonte: 'Tutto chiaro! Aritmetica 1 · U3 lezioni 1-2 · pag. 200-205',
+    perIl: ['2026-11-12'],
+    domande: 12,
+    sezioni: ['scheda', 'esercizi', 'quiz'],
+  },
 ]
 
 /** Indirizzo completo: con la sola barra finale il server di Vite rimanda all'app. */
