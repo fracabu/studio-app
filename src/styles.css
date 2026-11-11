@@ -752,3 +752,33 @@ button { font: inherit; color: inherit; }
   .bottone-utente { padding: 1px; border-width: 2px; }
   .foto-utente { width: 32px; height: 32px; font-size: 1rem; }
 }
+
+/* ── Barra su tablet e telefono in orizzontale ──
+   Su una riga sola la barra serve almeno ~1180 px: sotto, le linguette vanno sulla seconda riga
+   (prima uscivano di lato e il browser del tablet rimpiccioliva tutta la pagina). */
+@media (max-width: 1180px) {
+  .barra { grid-template-columns: 1fr auto; row-gap: 8px; }
+  .linguette { grid-column: 1 / -1; grid-row: 2; justify-content: center; }
+  .linguette a { flex: 1; min-width: 0; max-width: 150px; }
+}
+@media (max-width: 760px) {
+  .linguette a { max-width: none; font-size: clamp(0.74rem, 3.5vw, 0.95rem); }
+  .linguette a span { max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+}
+/* telefono stretto: via il compagno del giorno (c'è già in Oggi) e pulsanti più piccoli */
+@media (max-width: 420px) {
+  .compagno { display: none; }
+  .marchio { font-size: 0.95rem; }
+  .barra-destra { gap: 5px; }
+  .contatore { font-size: 1.05rem; padding: 1px 10px 1px 7px; border-width: 2px; }
+  .bottone-colori { padding: 3px 7px; }
+}
+/* schermo basso (telefono in orizzontale): linguette senza icona, barra più sottile */
+@media (max-height: 520px) {
+  .linguette .icona { display: none; }
+  .linguette a { padding: 5px 8px 4px; }
+  .barra { padding-top: 5px; padding-bottom: 6px; row-gap: 6px; }
+  .app { padding-top: 16px; }
+  /* le 8 carte in 2 righe diventavano strisce: qui scorrono */
+  .collezione { grid-template-rows: none; grid-auto-rows: 200px; overflow: auto; padding: 4px; }
+}

@@ -69,7 +69,8 @@ Stelle da eventi con id unico (`src/lib/premi.ts`): compito spuntato 2 (tolta la
 ## Stile
 Mix "scuola media + gioco", ispirato (senza copiare nulla) a PBS Design Squad Nation per layout e colori e alle meccaniche di collezione tipo Brawl Stars (solo meccaniche, personaggi nostri): fondo a quadretti colorato, linguette di cartoncino con icone a mano, fogli bianchi con etichetta storta, pulsanti spessi con bordo e ombra piena, contatore di stelle. Font: Nunito (testo; **non** Atkinson: lo zero barrato faceva sembrare rotti gli orari), Lilita One (titoli, numeri da gioco), Patrick Hand (etichette e scrittura sul diario). Evidenziatori per materia fissi; il telaio cambia con la palette.
 
-Ogni vista sta in **100dvh**: la pagina non scorre mai, al massimo una lista dentro. Celle dell'orario con container query (bassa → nome e orario su una riga). Verifiche fatte con Playwright a 1280×720, 1440×900, 1280×620, 390×844.
+Ogni vista sta in **100dvh**: la pagina non scorre mai, al massimo una lista dentro. Celle dell'orario con container query (bassa → nome e orario su una riga). Verifiche fatte con Playwright a 1280×720, 1440×900, 1280×620, 390×844; l'11/11 anche 360×740, 768×1024, 844×390 (orizzontale), 1024×768, con `isMobile` (un elemento più largo dello schermo fa rimpicciolire tutta la pagina al browser del telefono).
+Barra dell'app: su una riga sopra 1180 px, sotto le linguette vanno in seconda riga; ≤420 px niente compagno del giorno; altezza ≤520 px linguette senza icona. Pagine delle lezioni sul telefono: testata su due righe (← App · titolo · stelle, poi linguette), ≤480 px linguette senza emoji e "Interroga" al posto di "Interrogazione".
 
 ## Prossimi passi (in ordine)
 1. Secondo riferimento di stile (l'immagine inviata era arrivata rotta).

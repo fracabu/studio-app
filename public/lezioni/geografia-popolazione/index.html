@@ -157,10 +157,28 @@
   .avvio h2 { font-size: 2.1rem; }
 
   @media (max-width: 760px) {
-    .linguette { margin-left: 0; width: 100%; justify-content: space-between; }
-    .linguette button { min-width: 0; flex: 1; font-size: 1.05rem; padding: 6px 4px 4px; }
+    .linguette { margin-left: 0; width: 100%; justify-content: space-between; gap: 5px; }
+    /* 5 linguette su ~360 px: testo che si stringe, e "Interrogazione" con i puntini se non ci sta */
+    .linguette button { min-width: 0; flex: 1 1 0; font-size: clamp(.8rem, 3.6vw, 1.05rem); padding: 6px 3px 4px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .risposte { grid-template-columns: 1fr; }
     main { padding-top: 26px; }
+    /* testata su due righe: ← App · titolo · stelle, poi le linguette */
+    .barra { gap: 8px 10px; padding: 8px 10px; }
+    .indietro { order: 1; flex: none; padding: 2px 10px; }
+    .titolo { order: 2; flex: 1; min-width: 0; font-size: 1.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .titolo small { display: none; }
+    .contatore { order: 3; flex: none; font-size: 1rem; padding: 1px 10px 1px 7px; }
+    .linguette { order: 4; }
+  }
+  .corto { display: none; }
+  @media (max-width: 480px) {
+    .linguette button i { display: none; }
+    .lungo { display: none; }
+    .corto { display: inline; }
+    .carta { padding: 10px 12px; }
+    .carta h2 { font-size: 1.2rem; overflow-wrap: normal; }
+    .ascolta { padding: 2px 10px; }
   }
 </style>
 </head>
@@ -170,11 +188,11 @@
     <a class="indietro" href="/#lezioni">← App</a>
     <h1 class="titolo" id="titolo"></h1>
     <nav class="linguette" role="tablist">
-      <button role="tab" data-vista="video" aria-selected="false">🎬 Video</button>
-      <button role="tab" data-vista="scheda" aria-selected="true">📄 Schede</button>
-      <button role="tab" data-vista="esercizi" aria-selected="false">✏️ Esercizi</button>
-      <button role="tab" data-vista="quiz" aria-selected="false">⭐ Quiz</button>
-      <button role="tab" data-vista="interroga" aria-selected="false">🎤 Interrogazione</button>
+      <button role="tab" data-vista="video" aria-selected="false"><i>🎬</i> Video</button>
+      <button role="tab" data-vista="scheda" aria-selected="true"><i>📄</i> Schede</button>
+      <button role="tab" data-vista="esercizi" aria-selected="false"><i>✏️</i> Esercizi</button>
+      <button role="tab" data-vista="quiz" aria-selected="false"><i>⭐</i> Quiz</button>
+      <button role="tab" data-vista="interroga" aria-selected="false"><i>🎤</i> <span class="lungo">Interrogazione</span><span class="corto">Interroga</span></button>
     </nav>
     <span class="contatore" title="Le tue stelle">★ <span id="stelle">0</span></span>
   </header>
