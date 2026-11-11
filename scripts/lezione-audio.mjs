@@ -21,11 +21,17 @@ const VOCE_PROF = { voce: 'it-IT-DiegoNeural', rate: '+0%' }
 /** Dall'html della scheda al testo da dire: niente tag, sigle lette per intero. */
 export function perLaVoce(html) {
   return html
+    .replace(/<svg[\s\S]*?<\/svg>/g, '')
     .replace(/<li>/g, ' ').replace(/<\/(p|li|ol|ul)>/g, '. ')
     .replace(/<[^>]+>/g, '')
     .replace(/→/g, ', ')
     .replace(/\ba\.C\./g, 'avanti Cristo')
+    .replace(/\bab\/km²/g, 'abitanti per chilometro quadrato')
+    .replace(/\bkm²/g, 'chilometri quadrati')
     .replace(/\bkm\b/g, 'chilometri')
+    .replace(/ = /g, ' uguale ')
+    .replace(/ : /g, ' diviso ')
+    .replace(/📖\s*/g, '')
     .replace(/\s*\.\s*\./g, '.')
     .replace(/\s+/g, ' ')
     .trim()
@@ -35,7 +41,9 @@ const lavori = [
   ...L.schede.map((s) => ({ file: `${s.id}.mp3`, testo: `${s.titolo}. ${perLaVoce(s.html)}`, ...VOCE_SCHEDA })),
   ...L.interrogazione.map((q, i) => ({ file: `d${i}.mp3`, testo: perLaVoce(q.d), ...VOCE_PROF })),
   ...L.interrogazione.map((q, i) => ({ file: `r${i}.mp3`, testo: perLaVoce(q.risposta), ...VOCE_SCHEDA })),
-  { file: 'inizio.mp3', testo: 'Bene, cominciamo l\'interrogazione di arte. Mesopotamia ed Egitto. Prima domanda.', ...VOCE_PROF },
+  { file: 'inizio.mp3', testo: L.materia
+    ? `Bene, cominciamo l'interrogazione di ${L.materia.toLowerCase()}. ${L.titolo}. Prima domanda.`
+    : 'Bene, cominciamo l\'interrogazione di arte. Mesopotamia ed Egitto. Prima domanda.', ...VOCE_PROF },
   { file: 'bravo.mp3', testo: 'Bravo, risposta giusta. Andiamo avanti.', ...VOCE_PROF },
   { file: 'ripassa.mp3', testo: 'Non ci siamo ancora. Ripassa questa parte, poi te la richiedo.', ...VOCE_PROF },
   { file: 'fine.mp3', testo: 'L\'interrogazione è finita. Ottimo lavoro!', ...VOCE_PROF },

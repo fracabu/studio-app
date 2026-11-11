@@ -5,12 +5,15 @@
 <!-- stelle e risposte finiscono anche nel database, se nell'app si è fatto il login -->
 <script src="/sync.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>La popolazione</title>
+<title>Lezione</title>
+<!-- Modello di lezione: tutti i contenuti (titolo, linguette, schede, esercizi, quiz, interrogazione, Drive)
+     stanno in dati.js; questa pagina è uguale per ogni lezione. Gli MP3: node scripts/lezione-audio.mjs <id>. -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Lilita+One&family=Patrick+Hand&display=swap" rel="stylesheet" />
+<script src="dati.js"></script>
 <style>
-  /* Stesso stile dell'app (src/styles.css), palette "Rosso fuoco". */
+  /* Stesso stile dell'app e della lezione della temperatura, palette "Rosso fuoco". */
   :root {
     --sfondo: #c2352b; --quadretto-fondo: rgba(255,255,255,.14); --barra: #7d1d17;
     --linguetta: #ffd23f; --linguetta-testo: #3a0d09; --accento: #2b59ff; --accento-testo: #fff;
@@ -19,6 +22,7 @@
     --linea: color-mix(in oklab, var(--inchiostro) 14%, #fff);
     --penna-rossa: #d0342c; --stella: #ffd23f; --ombra: 0 5px 0 rgba(0,0,0,.25);
     --verde: oklch(0.9 0.1 150); --verde-forte: oklch(0.55 0.14 150);
+    --sabbia: #fff4d9; --lapislazzuli: #e6edff;
     --font: 'Nunito', system-ui, sans-serif; --font-gioco: 'Lilita One', 'Nunito', sans-serif; --font-mano: 'Patrick Hand', 'Nunito', sans-serif;
   }
   * { box-sizing: border-box; }
@@ -30,8 +34,7 @@
     background-size: 28px 28px;
   }
   h1, h2, h3 { margin: 0; font-weight: 400; font-family: var(--font-gioco); line-height: 1.1; }
-  button { font: inherit; color: inherit; }
-  sup { font-size: .7em; line-height: 0; }
+  button, textarea, select { font: inherit; color: inherit; }
   :focus-visible { outline: 3px solid var(--stella); outline-offset: 2px; border-radius: 4px; }
   .telaio { height: 100dvh; display: flex; flex-direction: column; }
   .barra { flex: none; display: flex; align-items: center; gap: 14px; padding: 8px 16px; background: var(--barra); color: #fff; box-shadow: 0 4px 0 rgba(0,0,0,.25); flex-wrap: wrap; }
@@ -55,32 +58,32 @@
   .evid { background: linear-gradient(transparent 40%, var(--verde) 40% 90%, transparent 90%); padding: 0 2px; font-weight: 800; }
   .bottone { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; background: var(--accento); color: var(--accento-testo); font-family: var(--font-gioco); font-size: 1.1rem; border: 3px solid var(--inchiostro); border-radius: 10px; padding: 8px 18px; box-shadow: 0 4px 0 var(--inchiostro); }
   .bottone.bianco { background: #fff; color: var(--inchiostro); }
+  .bottone.giallo { background: var(--linguetta); color: var(--inchiostro); }
+  .bottone.rosso { background: var(--penna-rossa); color: #fff; }
   .bottone:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--inchiostro); }
   .bottone:disabled { opacity: .45; cursor: default; }
   .nota { color: var(--inchiostro-tenue); font-size: .95rem; }
+  .link { background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; color: var(--inchiostro-tenue); font-size: .9rem; }
 
-  /* Video */
-  .video-box { position: relative; flex: 1; min-height: 0; display: grid; place-items: center; background: #000; border-radius: 6px; overflow: hidden; }
-  /* assoluto: così il video si adatta al riquadro (intero, con i comandi) invece di allargarlo */
-  video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; display: block; }
-  .video-box iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; }
-  .manca { color: #fff; text-align: center; font-family: var(--font-mano); font-size: 1.4rem; padding: 20px; }
-  .sotto-video { display: flex; align-items: center; gap: 14px; margin-top: 12px; flex-wrap: wrap; }
-
-  /* Scheda */
-  .schede { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 26px 22px; padding-top: 14px; }
-  .carta { border: 2px solid var(--linea); border-radius: 8px; padding: 14px 16px; }
-  .carta h2 { font-size: 1.35rem; margin-bottom: 6px; }
-  .carta h2 .num { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--linguetta); border: 2px solid var(--inchiostro); margin-right: 6px; font-size: 1rem; }
-  .carta p { margin: 6px 0; }
-  .carta ul { margin: 6px 0; padding-left: 20px; }
+  /* Schede */
+  .comandi-schede { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+  .filtro button { cursor: pointer; border: 2px solid var(--inchiostro); background: #fff; border-radius: 999px; padding: 2px 12px; font-weight: 800; }
+  .filtro button[aria-pressed='true'] { background: var(--inchiostro); color: #fff; }
+  /* le schede usano tutta la larghezza dello schermo: colonne di giornale (niente buchi), 4 sui monitor grandi, 3 sui portatili, 1 sul telefono */
+  main:has(#vista-scheda.attiva) { max-width: 1680px; }
+  .schede { columns: 360px; column-gap: 18px; }
+  .schede > .carta { break-inside: avoid; margin-bottom: 18px; }
+  .carta { border: 2px solid var(--linea); border-radius: 8px; padding: 12px 16px; scroll-margin-top: 10px; overflow-wrap: anywhere; }
+  .carta table { border-collapse: collapse; width: 100%; font-size: .95rem; margin-top: 6px; }
+  .carta th, .carta td { border-bottom: 1px solid var(--linea); padding: 5px 6px; text-align: left; vertical-align: top; }
+  .carta th { font-family: var(--font-gioco); font-weight: 400; }
   .formula { font-family: var(--font-gioco); font-size: 1.15rem; background: #fff7d6; border: 2px dashed var(--inchiostro); border-radius: 8px; padding: 6px 10px; margin: 6px 0; display: inline-block; }
+  .parola { font-family: var(--font-mano); font-size: 1.15rem; }
   .attento { background: #ffe3e0; border-left: 5px solid var(--penna-rossa); border-radius: 6px; padding: 8px 12px; margin: 8px 0; }
-  table { border-collapse: collapse; width: 100%; font-size: .95rem; margin-top: 6px; }
-  th, td { border-bottom: 1px solid var(--linea); padding: 6px; text-align: left; vertical-align: top; }
-  th { font-family: var(--font-gioco); font-weight: 400; }
-  td.f { font-family: var(--font-gioco); white-space: nowrap; }
-  .larga { grid-column: 1 / -1; }
+  sup { font-size: .7em; line-height: 0; }
+  .figura { text-align: center; margin: 8px 0; }
+  .figura svg { width: 100%; max-width: 300px; height: auto; display: block; margin: 0 auto; }
+  .figura b { font-family: var(--font-gioco); font-weight: 400; }
 
   /* Esercizi */
   .esercizio { border: 2px solid var(--linea); border-radius: 8px; padding: 14px 16px; margin-bottom: 18px; }
@@ -88,17 +91,35 @@
   .metodo { background: #f3f7ff; border-left: 5px solid var(--accento); border-radius: 6px; padding: 8px 12px; margin: 8px 0; }
   .soluzione { display: none; background: var(--verde); border-radius: 6px; padding: 8px 12px; margin-top: 8px; font-family: var(--font-mano); font-size: 1.15rem; }
   .soluzione.aperta { display: block; }
+  .carta.suona { outline: 4px solid var(--linguetta); }
+  .carta.lampeggia { animation: lampo 1.2s 2; }
+  @keyframes lampo { 50% { outline: 4px solid var(--penna-rossa); } }
+  .carta-testa { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 6px; }
+  .carta h2 { font-size: 1.35rem; flex: 1; }
+  .carta h2 .num { display: inline-grid; place-items: center; min-width: 30px; height: 30px; border-radius: 50%; background: var(--linguetta); border: 2px solid var(--inchiostro); margin-right: 6px; font-size: 1rem; }
+  .carta .pag { font-family: var(--font-mano); color: var(--inchiostro-tenue); font-size: 1rem; }
+  .ascolta { flex: none; cursor: pointer; border: 3px solid var(--inchiostro); background: #fff; border-radius: 999px; padding: 3px 12px; font-weight: 900; box-shadow: 0 3px 0 var(--inchiostro); }
+  .ascolta[aria-pressed='true'] { background: var(--linguetta); }
+  .carta p { margin: 6px 0; }
+  .carta ul, .carta ol { margin: 6px 0; padding-left: 22px; }
+
+  /* Video (come scienze-temperatura) */
+  .video-box { position: relative; flex: 1; min-height: 0; display: grid; place-items: center; background: #000; border-radius: 6px; overflow: hidden; }
+  video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; display: block; }
+  .video-box iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; }
+  .manca { color: #fff; text-align: center; font-family: var(--font-mano); font-size: 1.4rem; padding: 20px; }
+  .sotto-video { display: flex; align-items: center; gap: 14px; margin-top: 12px; flex-wrap: wrap; }
 
   /* Quiz */
   .quiz { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; padding-bottom: 8px; }
-  .progresso { display: flex; gap: 5px; }
-  .progresso i { flex: 1; height: 10px; border-radius: 5px; background: var(--linea); }
+  .progresso { display: flex; gap: 5px; flex-wrap: wrap; }
+  .progresso i { flex: 1; min-width: 10px; height: 10px; border-radius: 5px; background: var(--linea); }
   .progresso i.giusta { background: var(--verde-forte); }
   .progresso i.sbagliata { background: var(--penna-rossa); }
   .progresso i.ora { background: var(--linguetta); outline: 2px solid var(--inchiostro); }
   .domanda-quiz { font-family: var(--font-gioco); font-size: clamp(1.3rem, 3.4vh, 1.8rem); }
   .risposte { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .risposte button { cursor: pointer; text-align: left; background: #fff; border: 3px solid var(--inchiostro); border-radius: 10px; padding: 12px 14px; box-shadow: 0 4px 0 var(--inchiostro); font-weight: 700; font-size: 1.15rem; }
+  .risposte button { cursor: pointer; text-align: left; background: #fff; border: 3px solid var(--inchiostro); border-radius: 10px; padding: 12px 14px; box-shadow: 0 4px 0 var(--inchiostro); font-weight: 700; font-size: 1.05rem; }
   .risposte button:disabled { cursor: default; }
   .risposte button.giusta { background: var(--verde); }
   .risposte button.sbagliata { background: #ffd0cc; text-decoration: line-through; }
@@ -108,93 +129,66 @@
   .fine h2 { font-size: 2.4rem; }
   .stelle-grandi { font-size: 2.6rem; letter-spacing: 4px; }
 
+  /* Interrogazione */
+  .interroga { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+  .cattedra { display: flex; gap: 14px; align-items: center; }
+  .prof { flex: none; width: 64px; height: 64px; border-radius: 50%; background: var(--linguetta); border: 3px solid var(--inchiostro); display: grid; place-items: center; font-size: 2rem; }
+  .prof.parla { animation: parla .5s infinite alternate; }
+  @keyframes parla { to { transform: scale(1.08) rotate(-3deg); } }
+  .domanda-prof { font-family: var(--font-gioco); font-size: clamp(1.3rem, 3.2vh, 1.7rem); }
+  .tempo { display: flex; align-items: center; gap: 10px; }
+  .tempo .barra-tempo { flex: 1; height: 14px; border-radius: 7px; background: var(--linea); overflow: hidden; border: 2px solid var(--inchiostro); }
+  .tempo .barra-tempo span { display: block; height: 100%; background: var(--verde-forte); transition: width 1s linear; }
+  .tempo .barra-tempo span.poco { background: var(--penna-rossa); }
+  .tempo b { font-family: var(--font-gioco); font-weight: 400; font-size: 1.3rem; min-width: 3.2ch; text-align: right; }
+  textarea { width: 100%; min-height: 110px; border: 3px solid var(--inchiostro); border-radius: 10px; padding: 10px 12px; font-size: 1.1rem; resize: vertical; background: #fffef6; }
+  .riga-bottoni { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .mic.attivo { background: var(--penna-rossa); color: #fff; animation: parla .6s infinite alternate; }
+  .esito { border-radius: 10px; padding: 12px 14px; border: 3px solid var(--inchiostro); }
+  .esito.ok { background: var(--verde); }
+  .esito.no { background: #ffe1dd; }
+  .esito h3 { font-size: 1.4rem; margin-bottom: 4px; }
+  .modello { background: #fff; border-radius: 8px; padding: 8px 12px; margin: 8px 0; border-left: 5px solid var(--accento); }
+  .ripasso-box .carta { margin-top: 8px; }
+  .scelte-avvio { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+  .scelte-avvio label { font-weight: 800; }
+  .avvio { flex: 1; display: grid; place-items: center; text-align: center; }
+  .avvio > div { max-width: 640px; display: grid; gap: 14px; justify-items: center; }
+  .avvio h2 { font-size: 2.1rem; }
+
   @media (max-width: 760px) {
     .linguette { margin-left: 0; width: 100%; justify-content: space-between; }
-    .linguette button { min-width: 0; flex: 1; }
-    .schede, .risposte { grid-template-columns: 1fr; }
+    .linguette button { min-width: 0; flex: 1; font-size: 1.05rem; padding: 6px 4px 4px; }
+    .risposte { grid-template-columns: 1fr; }
     main { padding-top: 26px; }
   }
-  /* Geografia: evidenziatore verde-giallo (hue 100) */
-  .evid { background: linear-gradient(transparent 40%, oklch(0.9 0.12 120) 40% 90%, transparent 90%); }
-  .piramidi { display: flex; gap: 22px; flex-wrap: wrap; margin-top: 8px; }
-  .piramide { flex: 1; min-width: 220px; text-align: center; }
-  .piramide svg { width: 100%; max-width: 300px; height: auto; display: block; margin: 0 auto; }
-  .piramide b { font-family: var(--font-gioco); font-weight: 400; font-size: 1.1rem; }
-  .parola { font-family: var(--font-mano); font-size: 1.15rem; }
 </style>
 </head>
 <body>
 <div class="telaio">
   <header class="barra">
     <a class="indietro" href="/#lezioni">← App</a>
-    <h1 class="titolo">La popolazione <small>Geografia · pag. B4–B6</small></h1>
+    <h1 class="titolo" id="titolo"></h1>
     <nav class="linguette" role="tablist">
-      <button role="tab" data-vista="scheda" aria-selected="true">📄 Scheda</button>
+      <button role="tab" data-vista="video" aria-selected="false">🎬 Video</button>
+      <button role="tab" data-vista="scheda" aria-selected="true">📄 Schede</button>
       <button role="tab" data-vista="esercizi" aria-selected="false">✏️ Esercizi</button>
       <button role="tab" data-vista="quiz" aria-selected="false">⭐ Quiz</button>
+      <button role="tab" data-vista="interroga" aria-selected="false">🎤 Interrogazione</button>
     </nav>
     <span class="contatore" title="Le tue stelle">★ <span id="stelle">0</span></span>
   </header>
 
   <main>
-    <!-- SCHEDA -->
+    <!-- SCHEDE -->
     <section class="vista attiva" id="vista-scheda">
       <div class="pannello">
-        <span class="etichetta">Scheda per studiare</span>
-        <div class="scorre">
-          <div class="schede">
-            <div class="carta">
-              <h2><span class="num">1</span>Popolazione e demografia</h2>
-              <p>La <span class="evid">popolazione</span> è l'insieme delle persone che vivono in un certo luogo.</p>
-              <p>La <span class="evid">demografia</span> è la scienza che la studia raccogliendo e analizzando <b>dati statistici</b>.</p>
-              <p>Da dove arrivano i dati? Dall'<b>anagrafe del Comune</b> (nascite, morti, matrimoni…) e dai <b>censimenti</b>, cioè i grandi conteggi di tutti gli abitanti.</p>
-              <p class="nota parola">📖 Demografia = dal greco <i>dèmos</i> (popolo) + <i>gràphein</i> (scrivere): "descrizione del popolo". <i>Dèmos</i> + <i>kràtos</i> (potere) = <b>democrazia</b>, "potere del popolo".</p>
-            </div>
-            <div class="carta">
-              <h2><span class="num">2</span>I sei dati della popolazione</h2>
-              <table>
-                <tr><th>Dato</th><th>Che cosa dice</th><th>In Europa</th></tr>
-                <tr><td><b>Grandezza</b></td><td>quanti abitanti ci sono</td><td>più di 720 milioni</td></tr>
-                <tr><td><b>Densità</b></td><td>quante persone in media in 1 km²</td><td>circa 70 per km²</td></tr>
-                <tr><td><b>Distribuzione</b></td><td>dove si concentrano</td><td>pianure e coste</td></tr>
-                <tr><td><b>Composizione</b></td><td>quanti maschi e femmine, di che età</td><td>meno giovani che anziani</td></tr>
-                <tr><td><b>Natalità e mortalità</b></td><td>quanti nati e morti ogni 1000 abitanti</td><td>circa 9 nati, più di 11 morti</td></tr>
-                <tr><td><b>Flussi migratori</b></td><td>quanti arrivano e quanti partono</td><td>UE 2020: circa 2 milioni arrivati, 1 milione partiti</td></tr>
-              </table>
-              <div class="formula">densità = abitanti : km²</div>
-            </div>
-            <div class="carta">
-              <h2><span class="num">3</span>A che cosa servono i dati</h2>
-              <p>Confrontando i dati di oggi con quelli degli anni passati si possono fare <span class="evid">previsioni</span>.</p>
-              <p>Così chi governa decide meglio: quante <b>scuole</b> e quanti <b>ospedali</b> aprire o chiudere, quanti soldi servono per le <b>pensioni</b>.</p>
-              <p class="nota">Immigrato = chi <b>arriva</b> a vivere in un paese. Emigrato = chi <b>parte</b> dal suo paese.</p>
-            </div>
-            <div class="carta">
-              <h2><span class="num">4</span>La piramide della popolazione</h2>
-              <p>È il grafico che mostra la <b>composizione</b>: due istogrammi a barre orizzontali, <b>maschi a sinistra</b> e <b>femmine a destra</b>. Ogni barra = 5 anni di età, dai bambini in basso agli anziani in alto.</p>
-              <div class="piramidi">
-                <div class="piramide"><svg id="pir-giovane" viewBox="0 0 300 200"></svg><b>Base larga</b><br><span class="nota">nascono tanti bambini: è una vera piramide</span></div>
-                <div class="piramide"><svg id="pir-vecchia" viewBox="0 0 300 200"></svg><b>Base stretta</b><br><span class="nota">nascono pochi bambini: è come l'Europa</span></div>
-              </div>
-            </div>
-            <div class="carta">
-              <h2><span class="num">5</span>Dove vive la gente?</h2>
-              <ul>
-                <li>Più nelle zone a <b>clima temperato</b> che in quelle troppo fredde o troppo calde.</li>
-                <li>Dove è più facile costruire: <b>pianure</b>, lungo i <b>fiumi</b>, sulle <b>coste</b>.</li>
-              </ul>
-              <p>In Europa le zone più affollate sono l'Inghilterra, il Belgio e i Paesi Bassi, la Germania occidentale (la Ruhr), la <b>Pianura Padana</b> e i dintorni di Parigi. Quasi vuoto il nord della Scandinavia e della Russia.</p>
-            </div>
-            <div class="carta">
-              <h2><span class="num">6</span>Tre grandi cambiamenti di oggi</h2>
-              <ul>
-                <li><b>Si va in città</b>: le campagne si svuotano perché lì non c'è più lavoro per tutti. Le città crescono in fretta e in disordine perché offrono sempre più servizi: è l'<span class="evid">urbanesimo</span>.</li>
-                <li><b>Si invecchia</b>: nei paesi più sviluppati ci sono sempre più anziani (si vive meglio e più a lungo) e nascono meno bambini.</li>
-                <li><b>Si migra</b>: sempre più persone vanno dai paesi poveri a quelli più ricchi.</li>
-              </ul>
-            </div>
-          </div>
+        <span class="etichetta">Schede per ripassare · leggi o ascolta</span>
+        <div class="comandi-schede">
+          <button class="bottone giallo" id="ascolta-tutto">▶ Ascolta tutte</button>
+          <span class="filtro" role="group" aria-label="Mostra"></span>
         </div>
+        <div class="scorre"><div class="schede" id="schede"></div></div>
       </div>
     </section>
 
@@ -213,12 +207,42 @@
         <div class="quiz" id="quiz"></div>
       </div>
     </section>
+
+    <!-- INTERROGAZIONE -->
+    <section class="vista" id="vista-interroga">
+      <div class="pannello">
+        <span class="etichetta">Interrogazione simulata</span>
+        <div class="interroga" id="interroga"></div>
+      </div>
+    </section>
+
+    <!-- VIDEO -->
+    <section class="vista" id="vista-video">
+      <div class="pannello">
+        <span class="etichetta">Video · guardalo per ripassare tutto</span>
+        <div class="video-box" id="video-box">
+          <video id="video" src="video.mp4" controls playsinline preload="metadata"></video>
+        </div>
+        <div class="sotto-video">
+          <span class="nota">Guardalo tutto fino alla fine: vale <b>5 stelle</b>. Poi quiz e interrogazione.</span>
+        </div>
+      </div>
+    </section>
   </main>
 </div>
 
 <script>
-const LEZIONE = 'geografia-popolazione'
-const VISTE = ['scheda', 'esercizi', 'quiz']
+const L = window.LEZIONE
+const ID = L.id
+document.title = `${L.materia}: ${L.titolo}`
+document.getElementById('titolo').innerHTML = `${L.titolo} <small>${L.materia} · pag. ${L.pagine}</small>`
+// solo le linguette della lezione, nell'ordine di dati.js; la prima si apre
+const VISTE = L.sezioni
+const nav = document.querySelector('.linguette')
+VISTE.forEach((v) => { const b = nav.querySelector(`[data-vista="${v}"]`); if (b) nav.appendChild(b) })
+nav.querySelectorAll('button').forEach((b) => { if (!VISTE.includes(b.dataset.vista)) b.remove() })
+document.querySelectorAll('.vista').forEach((s) => s.classList.toggle('attiva', s.id === 'vista-' + VISTE[0]))
+nav.querySelectorAll('button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.vista === VISTE[0])))
 
 /* ── Stelle: stesso archivio dell'app (src/lib/premi.ts) ── */
 const CHIAVE_PREMI = 'studio-app:premi'
@@ -239,75 +263,95 @@ function mostraStelle() {
 }
 mostraStelle()
 
+/* ── Audio: MP3 preparati (scripts/lezione-audio.mjs); se manca, la voce del browser ── */
+const lettore = new Audio()
+let fineAudio = null
+function testoPulito(html) {
+  const d = document.createElement('div'); d.innerHTML = html.replace(/<svg[\s\S]*?<\/svg>/g, '')
+  return d.textContent.replace(/→/g, ', ').replace(/\ba\.C\./g, 'avanti Cristo').replace(/\s+/g, ' ').trim()
+}
+function zitto() {
+  lettore.pause(); lettore.onended = null; lettore.onerror = null
+  try { speechSynthesis.cancel() } catch {}
+  const f = fineAudio; fineAudio = null; if (f) f(false)
+}
+/** Suona un file; se non c'è, legge il testo. Risolve true se è arrivato in fondo. */
+function suona(file, testo) {
+  zitto()
+  return new Promise((ok) => {
+    fineAudio = ok
+    const chiudi = (v) => { if (fineAudio === ok) { fineAudio = null; ok(v) } }
+    const browser = () => {
+      if (!testo || !('speechSynthesis' in window)) return chiudi(true)
+      const u = new SpeechSynthesisUtterance(testo); u.lang = 'it-IT'; u.rate = 1
+      u.onend = () => chiudi(true); u.onerror = () => chiudi(false)
+      speechSynthesis.speak(u)
+    }
+    lettore.src = 'audio/' + file
+    lettore.onended = () => chiudi(true)
+    lettore.onerror = browser
+    lettore.play().catch(browser)
+  })
+}
+
 /* ── Linguette ── */
 const linguette = document.querySelectorAll('.linguette button')
 function apri(nome) {
   linguette.forEach((b) => b.setAttribute('aria-selected', String(b.dataset.vista === nome)))
   document.querySelectorAll('.vista').forEach((v) => v.classList.toggle('attiva', v.id === 'vista-' + nome))
-  try { localStorage.setItem(`studio-app:lezione-${LEZIONE}:vista`, nome) } catch {}
+  zitto(); fermaInterrogazione?.()
+  if (nome !== 'video') fermaVideo()
+  try { localStorage.setItem(`studio-app:lezione-${ID}:vista`, nome) } catch {}
 }
+
+/* ── Video ──
+   Sul PC di casa c'è video.mp4 accanto alla pagina (fuori da git). Online non c'è:
+   si passa al video su Google Drive (come scienze-temperatura). Finché DRIVE_ID è vuoto, "in preparazione". */
+const DRIVE_ID = L.driveId || ''
+function fermaVideo() {
+  const v = document.getElementById('video'); if (v) v.pause()
+  const f = document.getElementById('video-box').querySelector('iframe'); if (f && f.src !== 'about:blank') { const s = f.src; f.src = 'about:blank'; f.dataset.src = s }
+}
+function videoDaDrive() {
+  const box = document.getElementById('video-box')
+  if (!DRIVE_ID) { box.innerHTML = '<p class="manca">Il video è in preparazione 🎬<br>Intanto: schede, quiz e interrogazione!</p>'; return }
+  box.innerHTML = `<iframe src="https://drive.google.com/file/d/${DRIVE_ID}/preview" allow="autoplay; fullscreen" allowfullscreen title="Video della lezione"></iframe>`
+  // da Drive non sappiamo quando il video finisce: le 5 stelle si prendono col pulsante, dopo 5 minuti
+  const b = document.createElement('button'); b.className = 'bottone'; b.disabled = true; b.textContent = '✓ Ho visto tutto il video'
+  document.querySelector('.sotto-video').appendChild(b)
+  setTimeout(() => { b.disabled = false }, 5 * 60 * 1000)
+  b.addEventListener('click', () => { registra(`video:${ID}`, 'video', 5); b.disabled = true; b.textContent = '⭐ +5 stelle!' })
+}
+document.getElementById('video').addEventListener('error', videoDaDrive)
+document.getElementById('video').addEventListener('ended', () => registra(`video:${ID}`, 'video', 5))
+document.querySelector('[data-vista="video"]')?.addEventListener('click', () => {
+  const f = document.getElementById('video-box').querySelector('iframe'); if (f && f.dataset.src) { f.src = f.dataset.src; delete f.dataset.src }
+})
 linguette.forEach((b) => b.addEventListener('click', () => apri(b.dataset.vista)))
 addEventListener('hashchange', () => { const h = location.hash.replace('#', ''); if (VISTE.includes(h)) apri(h) })
-const daHash = location.hash.replace('#', '')
-if (VISTE.includes(daHash)) apri(daHash)
-else try { const v = localStorage.getItem(`studio-app:lezione-${LEZIONE}:vista`); if (v && VISTE.includes(v)) apri(v) } catch {}
 
-/* ── Piramidi disegnate da noi (dati inventati, solo per far vedere la forma) ──
-   valori dal basso (0-4 anni) all'alto (80+), in "barre" da 0 a 10; [maschi, femmine] */
-const PIRAMIDI = {
-  'pir-giovane': [[10, 10], [9.4, 9.3], [8.7, 8.7], [8, 8], [7.2, 7.3], [6.4, 6.5], [5.5, 5.7], [4.6, 4.9], [3.7, 4], [2.8, 3.2], [2, 2.4], [1.3, 1.7], [0.7, 1.1], [0.3, 0.6]],
-  'pir-vecchia': [[4.6, 4.4], [5, 4.8], [5.4, 5.2], [5.8, 5.6], [6.4, 6.2], [7.2, 7], [8, 7.9], [8.8, 8.8], [9.3, 9.4], [8.8, 9.1], [7.6, 8.2], [6.2, 7.2], [4.4, 5.8], [2.6, 4.6]],
-}
-function piramide(id, dati) {
-  const svg = document.getElementById(id), n = dati.length, h = 180 / n, cx = 150, k = 13
-  let s = `<line x1="${cx}" y1="5" x2="${cx}" y2="190" stroke="#3a0d09" stroke-width="2"/>`
-  dati.forEach(([m, f], i) => {
-    const y = 185 - (i + 1) * h
-    s += `<rect x="${cx - m * k}" y="${y + 1}" width="${m * k}" height="${h - 2}" fill="#2b8fe0"/>`
-    s += `<rect x="${cx}" y="${y + 1}" width="${f * k}" height="${h - 2}" fill="#f07aa6"/>`
-  })
-  s += `<text x="12" y="16" font-size="14" font-family="Patrick Hand" fill="#3a0d09">maschi</text><text x="288" y="16" font-size="14" font-family="Patrick Hand" fill="#3a0d09" text-anchor="end">femmine</text>`
-  s += `<text x="${cx}" y="199" font-size="11" font-family="Nunito" fill="#3a0d09" text-anchor="middle">↑ più anziani · ↓ bambini</text>`
-  svg.innerHTML = s
-}
-Object.entries(PIRAMIDI).forEach(([id, d]) => piramide(id, d))
+/* ── Schede ── */
+const htmlScheda = (s, i) => `
+  <article class="carta" id="carta-${s.id}" data-zona="${s.zona}">
+    <div class="carta-testa">
+      <h2><span class="num">${i + 1}</span>${s.titolo} <span class="pag">pag. ${s.pag}</span></h2>
+      <button class="ascolta" data-ascolta="${s.id}" aria-pressed="false">🔊 Ascolta</button>
+    </div>
+    ${s.html}
+  </article>`
+document.getElementById('schede').innerHTML = L.schede.map(htmlScheda).join('')
+// colori e filtri delle zone (facoltativi): zone: [{ nome, colore }]
+const zone = L.zone || []
+document.querySelectorAll('.carta').forEach((c) => { const z = zone.find((x) => x.nome === c.dataset.zona); if (z) c.style.background = z.colore })
+const filtro = document.querySelector('.filtro')
+if (zone.length > 1) filtro.innerHTML = '<button data-zona="" aria-pressed="true">Tutte</button>' + zone.map((z) => `<button data-zona="${z.nome}" aria-pressed="false">${z.nome}</button>`).join('')
+if (L.audio === false) { document.getElementById('ascolta-tutto').remove(); document.querySelectorAll('[data-ascolta]').forEach((b) => b.remove()) }
 
 /* ── Esercizi (nostri, non quelli del libro) ── */
-const ESERCIZI = [
-  {
-    titolo: '1. Calcola la densità',
-    testo: 'a) Il paese di Montealto ha <b>12.000 abitanti</b> su <b>40 km²</b>.<br>b) L\'isola di Scogliobello ha <b>1.500 abitanti</b> su <b>30 km²</b>.<br>c) Quale dei due posti è più affollato?',
-    metodo: 'Usa <b>densità = abitanti : km²</b>. Il risultato si legge "abitanti per km²".',
-    soluzione: 'a) 12.000 : 40 = <b>300 ab/km²</b> · b) 1.500 : 30 = <b>50 ab/km²</b> · c) <b>Montealto</b>: in ogni km² ci sono 300 persone invece di 50.',
-  },
-  {
-    titolo: '2. Che dato è?',
-    testo: 'Di quale dato della popolazione parla ogni frase?<br>a) "Montealto ha 12.000 abitanti."<br>b) "Quasi tutti vivono vicino al lago."<br>c) "Ci sono più nonni che nipoti."<br>d) "Ogni anno nascono 8 bambini ogni 1000 abitanti."<br>e) "Quest\'anno sono arrivate 200 persone da altri paesi."<br>f) "In ogni km² vivono 300 persone."',
-    metodo: 'Ripassa la tabella della carta 2: grandezza, densità, distribuzione, composizione, natalità e mortalità, flussi migratori.',
-    soluzione: 'a) grandezza · b) distribuzione · c) composizione · d) natalità · e) flussi migratori (immigrati) · f) densità',
-  },
-  {
-    titolo: '3. Leggi le due piramidi della scheda',
-    testo: 'Guarda le due piramidi della carta 4.<br>a) In quale nascono più bambini? Come lo capisci?<br>b) In quale ci sono più anziani?<br>c) Quale delle due somiglia di più alla popolazione europea? Perché?',
-    metodo: 'In basso ci sono i bambini, in alto gli anziani. Una barra lunga = tante persone di quell\'età.',
-    soluzione: 'a) In quella a <b>base larga</b>: la barra più in basso (0-4 anni) è la più lunga. · b) In quella a <b>base stretta</b>: le barre in alto sono più lunghe. · c) Quella a <b>base stretta</b>: in Europa nascono pochi bambini e ci sono più anziani che giovani.',
-  },
-  {
-    titolo: '4. Vero o falso? Correggi le false',
-    testo: 'a) La demografia studia la popolazione con i dati statistici.<br>b) Un immigrato è una persona che lascia il suo paese.<br>c) L\'urbanesimo è il ritorno delle persone in campagna.<br>d) La gente vive soprattutto in pianura, lungo i fiumi e sulle coste.<br>e) In Europa i giovani sono più degli anziani.',
-    metodo: 'Attenzione alle parole simili: im-migrato (entra), e-migrato (esce).',
-    soluzione: 'a) <b>V</b> · b) <b>F</b>: chi parte è un <b>emigrato</b>, l\'immigrato è chi arriva · c) <b>F</b>: è lo spostamento verso le <b>città</b> · d) <b>V</b> · e) <b>F</b>: i giovani sono <b>meno</b> degli anziani',
-  },
-  {
-    titolo: '5. Spiega con parole tue',
-    testo: 'a) Perché al sindaco serve sapere quanti bambini nascono ogni anno?<br>b) Perché nelle pianure vive più gente che in alta montagna?',
-    metodo: 'Pensa a che cosa servirà a quei bambini fra qualche anno; e a com\'è costruire case, strade e campi su un terreno piatto o in salita.',
-    soluzione: 'a) Per prevedere quante <b>scuole</b>, classi e maestri serviranno fra qualche anno (e quanti asili adesso). · b) In pianura è <b>più facile costruire</b> case e strade, coltivare e spostarsi; il clima è più mite che in alta montagna.',
-  },
-]
+const ESERCIZI = L.esercizi || []
 document.getElementById('esercizi').innerHTML = ESERCIZI.map((e, i) => `
   <div class="esercizio">
-    <h3>${e.titolo}</h3>
+    <h3>${i + 1}. ${e.titolo}</h3>
     <p>${e.testo}</p>
     <div class="metodo">💡 <b>Come si fa:</b> ${e.metodo}</div>
     <button class="bottone bianco" data-sol="${i}">Prova da solo, poi controlla ✔</button>
@@ -320,36 +364,55 @@ document.getElementById('esercizi').addEventListener('click', (ev) => {
   b.textContent = s.classList.contains('aperta') ? 'Nascondi la soluzione' : 'Prova da solo, poi controlla ✔'
 })
 
-/* ── Quiz (la risposta giusta è sempre la prima: poi si mescolano) ── */
-const DOMANDE = [
-  { d: 'Che cos\'è la demografia?', r: ['La scienza che studia la popolazione con i dati statistici', 'Lo studio delle montagne', 'Il governo del popolo', 'Il conteggio delle città'], s: 'Demografia = "descrizione del popolo", fatta con i numeri.' },
-  { d: 'Da dove arrivano i dati sulla popolazione?', r: ['Dall\'anagrafe dei Comuni e dai censimenti', 'Dai giornali', 'Dalle carte geografiche', 'Dai social'], s: 'L\'anagrafe registra nascite, morti e matrimoni; il censimento conta tutti gli abitanti.' },
-  { d: 'Che cos\'è la densità di popolazione?', r: ['Il numero medio di persone in 1 km²', 'Il numero totale di abitanti', 'Il numero di nati ogni anno', 'La zona dove vive più gente'], s: 'Densità = abitanti : km².' },
-  { d: 'Un paese ha 2.000 abitanti su 10 km². Qual è la densità?', r: ['200 ab/km²', '20 ab/km²', '2.010 ab/km²', '20.000 ab/km²'], s: '2.000 : 10 = 200 abitanti per km².' },
-  { d: 'La composizione della popolazione dice…', r: ['quanti maschi e femmine ci sono e di che età', 'quanti abitanti ci sono in tutto', 'dove vive la gente', 'quante persone arrivano'], s: 'Composizione = suddivisione per sesso ed età.' },
-  { d: 'Chi è un immigrato?', r: ['Chi arriva a vivere in un nuovo paese', 'Chi lascia il proprio paese', 'Chi vive in campagna', 'Un turista in vacanza'], s: 'Im-migrato entra, e-migrato esce.' },
-  { d: 'Che cosa mostra la piramide della popolazione?', r: ['Gli abitanti divisi per sesso e fasce di età', 'La densità nelle regioni', 'Le città più grandi', 'Come è cresciuta la popolazione nei secoli'], s: 'Maschi a sinistra, femmine a destra, una barra ogni 5 anni di età.' },
-  { d: 'Se la piramide ha la base stretta, vuol dire che…', r: ['nascono pochi bambini', 'nascono tantissimi bambini', 'arrivano molti immigrati', 'ci sono pochi anziani'], s: 'In basso ci sono i bambini da 0 a 4 anni: barra corta = pochi bambini. È il caso dell\'Europa.' },
-  { d: 'Dove si concentra di più la popolazione?', r: ['In pianura, lungo i fiumi e sulle coste', 'In alta montagna', 'Nei deserti', 'Vicino ai poli'], s: 'Dove il clima è temperato ed è più facile costruire.' },
-  { d: 'Che cos\'è l\'urbanesimo?', r: ['Le persone si spostano in città, che crescono in fretta e in disordine', 'Le persone tornano a vivere in campagna', 'La costruzione di nuove strade', 'L\'aumento delle nascite'], s: 'Le campagne si svuotano e le città si allargano.' },
-  { d: 'Perché nei paesi sviluppati la popolazione invecchia?', r: ['Si vive meglio e più a lungo, e nascono meno bambini', 'Nascono più bambini', 'Ci sono più guerre', 'Arrivano solo anziani'], s: 'Più anziani + meno nascite = popolazione che invecchia.' },
-  { d: 'Che cosa significa "democrazia"?', r: ['Potere del popolo', 'Descrizione del popolo', 'Popolo numeroso', 'Governo del re'], s: 'Dèmos (popolo) + kràtos (potere). Descrizione del popolo è la demografia!' },
-]
+let catena = false
+async function ascoltaScheda(id, bottone) {
+  const s = L.schede.find((x) => x.id === id)
+  document.querySelectorAll('[data-ascolta]').forEach((b) => b.setAttribute('aria-pressed', 'false'))
+  document.querySelectorAll('.carta.suona').forEach((c) => c.classList.remove('suona'))
+  const carta = document.getElementById('carta-' + id)
+  carta?.classList.add('suona'); carta?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  if (bottone) bottone.setAttribute('aria-pressed', 'true')
+  const finito = await suona(id + '.mp3', `${s.titolo}. ${testoPulito(s.html)}`)
+  carta?.classList.remove('suona'); if (bottone) bottone.setAttribute('aria-pressed', 'false')
+  return finito
+}
+document.getElementById('schede').addEventListener('click', (ev) => {
+  const b = ev.target.closest('[data-ascolta]'); if (!b) return
+  if (b.getAttribute('aria-pressed') === 'true') { catena = false; zitto(); return }
+  catena = false; ascoltaScheda(b.dataset.ascolta, b)
+})
+const tutto = document.getElementById('ascolta-tutto')
+tutto?.addEventListener('click', async () => {
+  if (catena) { catena = false; zitto(); tutto.textContent = '▶ Ascolta tutte'; return }
+  catena = true; tutto.textContent = '■ Ferma'
+  const visibili = [...document.querySelectorAll('.carta')].filter((c) => c.style.display !== 'none').map((c) => c.id.replace('carta-', ''))
+  for (const id of visibili) {
+    if (!catena) break
+    const ok = await ascoltaScheda(id, document.querySelector(`[data-ascolta="${id}"]`))
+    if (!ok) break
+  }
+  catena = false; tutto.textContent = '▶ Ascolta tutte'
+})
+filtro.addEventListener('click', (ev) => {
+  const b = ev.target.closest('button'); if (!b) return
+  document.querySelectorAll('.filtro button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)))
+  document.querySelectorAll('.carta').forEach((c) => { c.style.display = !b.dataset.zona || c.dataset.zona === b.dataset.zona ? '' : 'none' })
+})
+
+/* ── Quiz ── */
+const DOMANDE = L.quiz
 const quiz = document.getElementById('quiz')
 let ordine, n, giuste, esiti
 function mescola(a) { return a.map((x) => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map((p) => p[1]) }
-function inizia() {
-  ordine = mescola(DOMANDE.map((_, i) => i)); n = 0; giuste = 0; esiti = []
-  mostra()
-}
-function barra() {
+function iniziaQuiz() { ordine = mescola(DOMANDE.map((_, i) => i)); n = 0; giuste = 0; esiti = []; mostraQuiz() }
+function barraQuiz() {
   return '<div class="progresso">' + DOMANDE.map((_, i) => `<i class="${esiti[i] === true ? 'giusta' : esiti[i] === false ? 'sbagliata' : i === n ? 'ora' : ''}"></i>`).join('') + '</div>'
 }
-function mostra() {
-  if (n >= ordine.length) return finito()
+function mostraQuiz() {
+  if (n >= ordine.length) return fineQuiz()
   const q = DOMANDE[ordine[n]]
   const scelte = mescola(q.r.map((t, i) => ({ t, giusta: i === 0 })))
-  quiz.innerHTML = barra() +
+  quiz.innerHTML = barraQuiz() +
     `<p class="nota">Domanda ${n + 1} di ${DOMANDE.length}</p>
      <h2 class="domanda-quiz">${q.d}</h2>
      <div class="risposte">${scelte.map((c, i) => `<button data-i="${i}">${c.t}</button>`).join('')}</div>
@@ -360,25 +423,211 @@ function mostra() {
     quiz.querySelectorAll('.risposte button').forEach((x) => { x.disabled = true; if (scelte[x.dataset.i].giusta) x.classList.add('giusta') })
     if (!c.giusta) b.classList.add('sbagliata')
     esiti[n] = c.giusta
-    if (c.giusta) { giuste++; registra(`quiz:${LEZIONE}:${ordine[n]}`, 'quiz', 1) }
+    if (c.giusta) { giuste++; registra(`quiz:${ID}:${ordine[n]}`, 'quiz', 1) }
     document.getElementById('spiega').innerHTML = (c.giusta ? '<b>Giusto! ★</b> ' : '<b>Quasi…</b> ') + q.s
     const av = document.getElementById('avanti'); av.disabled = false; av.focus()
   }))
-  document.getElementById('avanti').addEventListener('click', () => { n++; mostra() })
+  document.getElementById('avanti').addEventListener('click', () => { n++; mostraQuiz() })
 }
-function finito() {
+function fineQuiz() {
   const perfetto = giuste === DOMANDE.length
-  if (perfetto) registra(`quiz:${LEZIONE}:perfetto`, 'quiz', 5)
-  quiz.innerHTML = barra() + `<div class="fine"><div>
-    <h2>${perfetto ? 'Tutto giusto!' : giuste >= 9 ? 'Bravissimo!' : giuste >= 6 ? 'Bene!' : 'Si può fare meglio!'}</h2>
+  if (perfetto) registra(`quiz:${ID}:perfetto`, 'quiz', 5)
+  quiz.innerHTML = barraQuiz() + `<div class="fine"><div>
+    <h2>${perfetto ? 'Tutto giusto!' : giuste >= DOMANDE.length * 0.75 ? 'Bravissimo!' : giuste >= DOMANDE.length / 2 ? 'Bene!' : 'Si può fare meglio!'}</h2>
     <p class="stelle-grandi">${'★'.repeat(Math.max(1, Math.round(giuste / DOMANDE.length * 5)))}</p>
     <p><b>${giuste} su ${DOMANDE.length}</b> risposte giuste${perfetto ? ' · +5 stelle bonus' : ''}.</p>
     <p class="nota">Le stelle valgono una volta sola per domanda: rifare il quiz serve per ripassare.</p>
-    <p><button class="bottone" id="ancora">Rifai il quiz</button></p>
+    <p><button class="bottone" id="ancora">Rifai il quiz</button> <button class="bottone giallo" id="vai-interroga">🎤 Prova l'interrogazione</button></p>
   </div></div>`
-  document.getElementById('ancora').addEventListener('click', inizia)
+  document.getElementById('ancora').addEventListener('click', iniziaQuiz)
+  document.getElementById('vai-interroga').addEventListener('click', () => apri('interroga'))
 }
-inizia()
+iniziaQuiz()
+
+/* ── Interrogazione ──
+   La domanda si sente a voce; poi parte il tempo. Si risponde scrivendo o parlando (microfono).
+   Il controllo cerca i concetti chiave (dati.js): se ne mancano troppi, si ripassa la scheda
+   e la domanda torna in fondo alla fila. Finisce quando tutte sono giuste. */
+const box = document.getElementById('interroga')
+const Riconoscimento = window.SpeechRecognition || window.webkitSpeechRecognition
+let coda = [], tentativi = {}, alPrimoColpo = 0, secondi = 90, timer = null, ascolto = null, attiva = false
+
+function normalizza(t) {
+  return ' ' + t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ') + ' '
+}
+/** Una parola chiave c'è se: con spazi → come frase; corta (≤3) → parola intera; lunga → inizio di parola. */
+function c_e(testo, parola) {
+  const p = normalizza(parola).trim()
+  if (p.includes(' ')) return testo.includes(' ' + p)
+  return p.length <= 3 ? testo.includes(' ' + p + ' ') : testo.includes(' ' + p)
+}
+function valuta(q, risposta) {
+  const t = normalizza(risposta)
+  const presi = q.concetti.filter((gruppo) => gruppo.some((p) => c_e(t, p)))
+  return { ok: presi.length >= q.minimo, presi: presi.length, servono: q.minimo }
+}
+
+function fermaInterrogazione() {
+  clearInterval(timer); timer = null
+  if (ascolto) { try { ascolto.stop() } catch {} ascolto = null }
+}
+
+function schermataAvvio() {
+  attiva = false
+  box.innerHTML = `<div class="avvio"><div>
+    <div class="prof">🧑‍🏫</div>
+    <h2>Interrogazione di ${L.materia.toLowerCase()}</h2>
+    <p>Ti faccio <b>${L.interrogazione.length} domande</b> su ${L.argomento || L.titolo.toLowerCase()}, a voce. Rispondi <b>scrivendo</b> o <b>parlando</b> col microfono.<br>
+    Se la risposta è giusta si va avanti. Se manca qualcosa, ripassi quel pezzo e te la richiedo alla fine.</p>
+    <div class="scelte-avvio">
+      <label>Tempo per risposta
+        <select id="tempo-scelto"><option value="60">1 minuto</option><option value="90" selected>1 minuto e mezzo</option><option value="120">2 minuti</option><option value="180">3 minuti</option></select>
+      </label>
+      <label><input type="checkbox" id="mescola" checked> Domande in ordine sparso</label>
+    </div>
+    <button class="bottone giallo" id="avvia" style="font-size:1.4rem">▶ Avvia interrogazione</button>
+    ${Riconoscimento ? '' : '<p class="nota">Questo browser non ha il microfono per la dettatura: rispondi scrivendo (o usa Chrome).</p>'}
+  </div></div>`
+  document.getElementById('avvia').addEventListener('click', async () => {
+    secondi = Number(document.getElementById('tempo-scelto').value)
+    const idx = L.interrogazione.map((_, i) => i)
+    coda = document.getElementById('mescola').checked ? mescola(idx) : idx
+    tentativi = {}; alPrimoColpo = 0; attiva = true
+    box.innerHTML = '<div class="cattedra"><div class="prof parla">🧑‍🏫</div><p class="domanda-prof">Si comincia…</p></div>'
+    await suona('inizio.mp3', `Bene, cominciamo l'interrogazione di ${L.materia.toLowerCase()}. Prima domanda.`)
+    if (attiva) prossima()
+  })
+}
+
+function barraInterrogazione() {
+  const fatte = L.interrogazione.length - new Set(coda).size
+  return `<div class="progresso">${L.interrogazione.map((_, i) => `<i class="${!coda.includes(i) ? 'giusta' : tentativi[i] ? 'sbagliata' : coda[0] === i ? 'ora' : ''}"></i>`).join('')}</div>
+    <p class="nota">Giuste ${fatte} su ${L.interrogazione.length}${Object.keys(tentativi).length ? ' · da rifare: ' + coda.filter((i) => tentativi[i]).length : ''}</p>`
+}
+
+async function prossima() {
+  fermaInterrogazione()
+  if (!coda.length) return fineInterrogazione()
+  const i = coda[0], q = L.interrogazione[i]
+  box.innerHTML = barraInterrogazione() + `
+    <div class="cattedra"><div class="prof parla" id="prof">🧑‍🏫</div><h2 class="domanda-prof">${q.d}</h2></div>
+    <div class="tempo"><span class="nota">Tempo</span><div class="barra-tempo"><span id="tempo-barra" style="width:100%"></span></div><b id="tempo-num">${secondi}</b></div>
+    <textarea id="risposta" placeholder="Scrivi qui la risposta… oppure premi 🎤 e parla"></textarea>
+    <div class="riga-bottoni">
+      ${Riconoscimento ? '<button class="bottone bianco mic" id="mic">🎤 Rispondi a voce</button>' : ''}
+      <button class="bottone" id="consegna">Ho finito ✓</button>
+      <button class="bottone bianco" id="ripeti">🔁 Ripeti la domanda</button>
+      <button class="link" id="esci">Smetti</button>
+    </div>`
+  document.getElementById('consegna').addEventListener('click', () => consegna(i))
+  document.getElementById('ripeti').addEventListener('click', () => suona(`d${i}.mp3`, q.d))
+  document.getElementById('esci').addEventListener('click', () => { zitto(); fermaInterrogazione(); schermataAvvio() })
+  const mic = document.getElementById('mic'); if (mic) mic.addEventListener('click', () => microfono(mic))
+  await suona(`d${i}.mp3`, q.d)
+  if (!attiva || coda[0] !== i || !document.getElementById('risposta')) return
+  document.getElementById('prof')?.classList.remove('parla')
+  document.getElementById('risposta').focus()
+  partiTempo(i)
+}
+
+function partiTempo(i) {
+  let resta = secondi
+  const barra = document.getElementById('tempo-barra'), num = document.getElementById('tempo-num')
+  timer = setInterval(() => {
+    resta--
+    if (num) num.textContent = resta
+    if (barra) { barra.style.width = (resta / secondi * 100) + '%'; barra.classList.toggle('poco', resta <= 15) }
+    if (resta <= 0) consegna(i)
+  }, 1000)
+}
+
+function microfono(bottone) {
+  if (ascolto) { try { ascolto.stop() } catch {} return }
+  const area = document.getElementById('risposta')
+  const base = area.value ? area.value.trim() + ' ' : ''
+  const r = new Riconoscimento(); r.lang = 'it-IT'; r.continuous = true; r.interimResults = true
+  let definitivo = ''
+  r.onresult = (ev) => {
+    let provvisorio = ''
+    for (let k = ev.resultIndex; k < ev.results.length; k++) {
+      if (ev.results[k].isFinal) definitivo += ev.results[k][0].transcript + ' '
+      else provvisorio += ev.results[k][0].transcript
+    }
+    area.value = base + definitivo + provvisorio
+  }
+  r.onend = () => { ascolto = null; bottone.classList.remove('attivo'); bottone.textContent = '🎤 Rispondi a voce' }
+  r.onerror = (e) => { if (e.error === 'not-allowed') area.placeholder = 'Il microfono non è permesso: scrivi la risposta.' }
+  ascolto = r; r.start()
+  bottone.classList.add('attivo'); bottone.textContent = '⏹ Ho finito di parlare'
+}
+
+async function consegna(i) {
+  if (coda[0] !== i) return
+  fermaInterrogazione(); zitto()
+  const q = L.interrogazione[i]
+  const risposta = document.getElementById('risposta')?.value ?? ''
+  const v = valuta(q, risposta)
+  const scheda = L.schede.find((s) => s.id === q.scheda)
+  const numScheda = L.schede.indexOf(scheda) + 1
+  if (v.ok) return giusta(i, risposta)
+  tentativi[i] = (tentativi[i] || 0) + 1
+  box.innerHTML = barraInterrogazione() + `
+    <div class="esito no">
+      <h3>Da ripassare 📚</h3>
+      <p>${risposta.trim() ? `Hai detto ${v.presi === 1 ? '1 cosa importante' : v.presi + ' cose importanti'}: ne servono almeno ${v.servono}.` : 'Non è arrivata nessuna risposta.'}</p>
+      ${risposta.trim() ? `<p class="nota">Hai risposto: «${risposta.trim().replace(/</g, '&lt;')}»</p>` : ''}
+      <div class="modello"><b>Una risposta completa:</b> ${q.risposta} <button class="ascolta" id="ascolta-modello">🔊</button></div>
+    </div>
+    <div class="ripasso-box"><p><b>Ripassa la scheda ${numScheda}</b>, poi te la richiedo più tardi:</p>${htmlScheda(scheda, numScheda - 1)}</div>
+    <div class="riga-bottoni">
+      <button class="bottone" id="ripassato">Ho ripassato, avanti →</button>
+      <button class="link" id="era-giusta">Il controllo ha sbagliato: la mia risposta era giusta</button>
+    </div>`
+  document.getElementById('ascolta-modello').addEventListener('click', () => suona(`r${i}.mp3`, q.risposta))
+  box.querySelector('[data-ascolta]').addEventListener('click', (ev) => ascoltaScheda(scheda.id, ev.currentTarget))
+  document.getElementById('ripassato').addEventListener('click', () => { zitto(); coda.push(coda.shift()); prossima() })
+  document.getElementById('era-giusta').addEventListener('click', () => { zitto(); tentativi[i]--; giusta(i, risposta) })
+  suona('ripassa.mp3', 'Non ci siamo ancora. Ripassa questa parte, poi te la richiedo.')
+}
+
+async function giusta(i, risposta) {
+  const q = L.interrogazione[i]
+  const primo = !tentativi[i]
+  if (primo) { alPrimoColpo++; registra(`interrogazione:${ID}:${i}`, 'quiz', 1) }
+  coda.shift()
+  box.innerHTML = barraInterrogazione() + `
+    <div class="esito ok">
+      <h3>${primo ? 'Giusto! ★' : 'Ora sì! ✓'}</h3>
+      <div class="modello"><b>Per completare:</b> ${q.risposta}</div>
+    </div>
+    <div class="riga-bottoni"><button class="bottone" id="avanti-i">${coda.length ? 'Prossima domanda →' : 'Fine →'}</button></div>`
+  document.getElementById('avanti-i').addEventListener('click', () => { zitto(); prossima() })
+  await suona('bravo.mp3', 'Bravo, risposta giusta. Andiamo avanti.')
+}
+
+function fineInterrogazione() {
+  attiva = false
+  const tot = L.interrogazione.length
+  registra(`interrogazione:${ID}:completa`, 'quiz', 5)
+  const voto = Math.max(4, Math.min(10, Math.round(4 + alPrimoColpo / tot * 6)))
+  box.innerHTML = `<div class="fine"><div>
+    <div class="prof">🧑‍🏫</div>
+    <h2>Interrogazione finita!</h2>
+    <p class="stelle-grandi">${'★'.repeat(Math.max(1, Math.round(alPrimoColpo / tot * 5)))}</p>
+    <p><b>${alPrimoColpo} su ${tot}</b> giuste al primo colpo · le altre le hai sistemate ripassando.</p>
+    <p>Voto di prova: <b style="font-family:var(--font-gioco);font-size:1.6rem">${voto}</b></p>
+    <p class="nota">+5 stelle per averla finita. Il controllo automatico guarda le parole importanti: il voto è solo un allenamento.</p>
+    <p><button class="bottone giallo" id="di-nuovo">Rifalla</button></p>
+  </div></div>`
+  document.getElementById('di-nuovo').addEventListener('click', schermataAvvio)
+  suona('fine.mp3', 'L\'interrogazione è finita. Ottimo lavoro!')
+}
+schermataAvvio()
+
+/* sezione dall'indirizzo (#quiz, #interroga…), altrimenti l'ultima aperta */
+const daHash = location.hash.replace('#', '')
+if (VISTE.includes(daHash)) apri(daHash)
+else try { const v = localStorage.getItem(`studio-app:lezione-${ID}:vista`); if (v && VISTE.includes(v)) apri(v) } catch {}
 </script>
 </body>
 </html>
