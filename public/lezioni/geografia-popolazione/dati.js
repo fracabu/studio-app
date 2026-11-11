@@ -26,7 +26,7 @@ window.LEZIONE = {
   argomento: 'la popolazione',
   pagine: 'B4–B6',
   sezioni: ['video', 'scheda', 'esercizi', 'quiz', 'interroga'],
-  driveId: '',
+  driveId: '1sau0hTiHIwr3THU_RU2ovT_zOt0M7IK-',
 
   /* ── Schede: html per leggere; l'audio si fa dal testo senza tag (le figure svg si saltano) ── */
   schede: [
