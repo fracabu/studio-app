@@ -61,7 +61,7 @@ export const LEZIONI: Lezione[] = [
     fonte: 'GeoAgenda 1 · cap. 6 · pag. B4-B6',
     perIl: ['2026-11-13'],
     domande: 12,
-    sezioni: ['scheda', 'esercizi', 'quiz'],
+    sezioni: ['video', 'scheda', 'esercizi', 'quiz'],
   },
 ]
 
