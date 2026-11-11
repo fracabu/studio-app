@@ -59,6 +59,14 @@
   .bottone:disabled { opacity: .45; cursor: default; }
   .nota { color: var(--inchiostro-tenue); font-size: .95rem; }
 
+  /* Video */
+  .video-box { position: relative; flex: 1; min-height: 0; display: grid; place-items: center; background: #000; border-radius: 6px; overflow: hidden; }
+  /* assoluto: così il video si adatta al riquadro (intero, con i comandi) invece di allargarlo */
+  video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; display: block; }
+  .video-box iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; }
+  .manca { color: #fff; text-align: center; font-family: var(--font-mano); font-size: 1.4rem; padding: 20px; }
+  .sotto-video { display: flex; align-items: center; gap: 14px; margin-top: 12px; flex-wrap: wrap; }
+
   /* Scheda */
   .schede { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 26px 22px; padding-top: 14px; }
   .carta { border: 2px solid var(--linea); border-radius: 8px; padding: 14px 16px; }
@@ -114,7 +122,8 @@
     <a class="indietro" href="/#lezioni">← App</a>
     <h1 class="titolo">Le potenze <small>Matematica · pag. 200–205</small></h1>
     <nav class="linguette" role="tablist">
-      <button role="tab" data-vista="scheda" aria-selected="true">📄 Scheda</button>
+      <button role="tab" data-vista="video" aria-selected="true">🎬 Video</button>
+      <button role="tab" data-vista="scheda" aria-selected="false">📄 Scheda</button>
       <button role="tab" data-vista="esercizi" aria-selected="false">✏️ Esercizi</button>
       <button role="tab" data-vista="quiz" aria-selected="false">⭐ Quiz</button>
     </nav>
@@ -122,8 +131,21 @@
   </header>
 
   <main>
+    <!-- VIDEO -->
+    <section class="vista attiva" id="vista-video">
+      <div class="pannello">
+        <span class="etichetta">Guarda prima il video</span>
+        <div class="video-box" id="video-box">
+          <video id="video" src="video.mp4" controls playsinline preload="metadata"></video>
+        </div>
+        <div class="sotto-video">
+          <span class="nota">Guardalo tutto fino alla fine: vale <b>5 stelle</b>. Poi passa alla scheda, agli esercizi e al quiz.</span>
+        </div>
+      </div>
+    </section>
+
     <!-- SCHEDA -->
-    <section class="vista attiva" id="vista-scheda">
+    <section class="vista" id="vista-scheda">
       <div class="pannello">
         <span class="etichetta">Scheda per studiare</span>
         <div class="scorre">
@@ -205,7 +227,7 @@
 
 <script>
 const LEZIONE = 'matematica-potenze'
-const VISTE = ['scheda', 'esercizi', 'quiz']
+const VISTE = ['video', 'scheda', 'esercizi', 'quiz']
 
 /* ── Stelle: stesso archivio dell'app (src/lib/premi.ts) ── */
 const CHIAVE_PREMI = 'studio-app:premi'
@@ -231,6 +253,7 @@ const linguette = document.querySelectorAll('.linguette button')
 function apri(nome) {
   linguette.forEach((b) => b.setAttribute('aria-selected', String(b.dataset.vista === nome)))
   document.querySelectorAll('.vista').forEach((v) => v.classList.toggle('attiva', v.id === 'vista-' + nome))
+  if (nome !== 'video') fermaVideo()
   try { localStorage.setItem(`studio-app:lezione-${LEZIONE}:vista`, nome) } catch {}
 }
 linguette.forEach((b) => b.addEventListener('click', () => apri(b.dataset.vista)))
@@ -239,6 +262,34 @@ addEventListener('hashchange', () => { const h = location.hash.replace('#', '');
 const daHash = location.hash.replace('#', '')
 if (VISTE.includes(daHash)) apri(daHash)
 else try { const v = localStorage.getItem(`studio-app:lezione-${LEZIONE}:vista`); if (v && VISTE.includes(v)) apri(v) } catch {}
+
+/* ── Video ──
+   Sul PC di casa c'è video.mp4 accanto alla pagina (fuori da git). Online non c'è:
+   si passa al video su Google Drive (chiunque col link). Finché DRIVE_ID è vuoto: "in preparazione". */
+const DRIVE_ID = ''
+const video = document.getElementById('video')
+const box = document.getElementById('video-box')
+function fermaVideo() {
+  const v = document.getElementById('video'); if (v) v.pause()
+  // getElementById e non `box`: apri() gira già all'avvio, prima che `box` esista
+  const f = document.getElementById('video-box').querySelector('iframe'); if (f && f.src !== 'about:blank') { const s = f.src; f.src = 'about:blank'; f.dataset.src = s }
+}
+function videoDaDrive() {
+  if (!DRIVE_ID) { box.innerHTML = '<p class="manca">Il video è in preparazione.<br>Intanto guarda la scheda! 📄</p>'; return }
+  box.innerHTML = `<iframe src="https://drive.google.com/file/d/${DRIVE_ID}/preview" allow="autoplay; fullscreen" allowfullscreen title="Video della lezione"></iframe>`
+  // da Drive non sappiamo quando il video finisce: le 5 stelle si prendono col pulsante, dopo 3 minuti
+  const nota = document.querySelector('.sotto-video')
+  const b = document.createElement('button'); b.className = 'bottone'; b.disabled = true; b.textContent = '✓ Ho visto tutto il video'
+  nota.appendChild(b)
+  setTimeout(() => { b.disabled = false }, 3 * 60 * 1000)
+  b.addEventListener('click', () => { registra(`video:${LEZIONE}`, 'video', 5); b.disabled = true; b.textContent = '⭐ +5 stelle!' })
+}
+// riapre il video di Drive quando si torna sulla linguetta
+document.querySelector('[data-vista="video"]').addEventListener('click', () => {
+  const f = box.querySelector('iframe'); if (f && f.dataset.src) { f.src = f.dataset.src; delete f.dataset.src }
+})
+video.addEventListener('error', videoDaDrive)
+video.addEventListener('ended', () => registra(`video:${LEZIONE}`, 'video', 5))
 
 /* ── Esercizi (nostri, non quelli del libro) ── */
 const ESERCIZI = [

@@ -52,7 +52,7 @@ export const LEZIONI: Lezione[] = [
     fonte: 'Tutto chiaro! Aritmetica 1 · U3 lezioni 1-2 · pag. 200-205',
     perIl: ['2026-11-12'],
     domande: 12,
-    sezioni: ['scheda', 'esercizi', 'quiz'],
+    sezioni: ['video', 'scheda', 'esercizi', 'quiz'],
   },
 ]
 
