@@ -17,6 +17,8 @@ await db`CREATE TABLE IF NOT EXISTS utenti (
 await db`CREATE TABLE IF NOT EXISTS progressi (
   utente_id int PRIMARY KEY REFERENCES utenti(id) ON DELETE CASCADE,
   dati jsonb NOT NULL DEFAULT '{}'::jsonb, aggiornato timestamptz NOT NULL DEFAULT now())`
+await db`ALTER TABLE utenti ADD COLUMN IF NOT EXISTS nome_visibile text`
+await db`ALTER TABLE utenti ADD COLUMN IF NOT EXISTS immagine text`
 
 const salt = randomBytes(16)
 const h = await scrypt(password, salt, 32)

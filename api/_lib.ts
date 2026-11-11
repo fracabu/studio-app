@@ -29,6 +29,21 @@ export async function preparaTabelle() {
     dati jsonb NOT NULL DEFAULT '{}'::jsonb,
     aggiornato timestamptz NOT NULL DEFAULT now()
   )`
+  // profilo (impostazioni utente): nome da mostrare e foto (data URL piccola, ~256 px)
+  await db`ALTER TABLE utenti ADD COLUMN IF NOT EXISTS nome_visibile text`
+  await db`ALTER TABLE utenti ADD COLUMN IF NOT EXISTS immagine text`
+}
+
+// ── Profilo ───────────────────────────────────────────────
+export type Profilo = { id: number; nome: string; nomeVisibile: string; immagine: string | null }
+
+export async function profiloDi(id: number): Promise<Profilo | null> {
+  const righe = (await sql()`SELECT id, nome, nome_visibile, immagine FROM utenti WHERE id = ${id}`) as
+    { id: number; nome: string; nome_visibile: string | null; immagine: string | null }[]
+  const r = righe[0]
+  if (!r) return null
+  const visibile = r.nome_visibile?.trim() || r.nome.charAt(0).toUpperCase() + r.nome.slice(1)
+  return { id: r.id, nome: r.nome, nomeVisibile: visibile, immagine: r.immagine }
 }
 
 // ── Password ──────────────────────────────────────────────

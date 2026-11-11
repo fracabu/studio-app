@@ -7,12 +7,17 @@
  *   SOLO le chiavi cambiate (null = cancellata). Il server le unisce a quelle che ha.
  * - All'avvio: prima si mandano le modifiche rimaste in sospeso, poi si prende tutto dal server.
  * - Primo login da un browser che aveva già dati suoi: si mandano tutti (vincono loro), mai cancellati.
+ * - Il browser ricorda di CHI sono i dati (studio-sync:utente). Se entra un altro utente, i dati del
+ *   precedente si tolgono; le sue modifiche non ancora mandate si mettono da parte
+ *   (studio-sync:attesa:<id>) e partono quando quell'utente rientra da qui.
  */
 (() => {
   if (window.studioSync) return
   const PREFISSO = 'studio-app:'
   const CAMBIATE = 'studio-sync:cambiate' // chiavi modificate e non ancora sul server (JSON)
   const BASE = 'studio-sync:base' // data dell'ultima versione del server allineata qui
+  const UTENTE = 'studio-sync:utente' // id dell'utente a cui appartengono i dati di questo browser
+  const ATTESA_DI = (id) => 'studio-sync:attesa:' + id // modifiche di un utente uscito senza mandarle
   const ATTESA = 1500
 
   const ls = window.localStorage
@@ -37,6 +42,8 @@
     for (const [k, v] of Object.entries(dati || {})) if (k.startsWith(PREFISSO) && typeof v === 'string' && !restano.has(k)) setOrig.call(ls, k, v)
     setOrig.call(ls, BASE, aggiornato)
     attivo = true
+    // l'app tiene in memoria diario e stelle letti all'apertura: così li rilegge (es. subito dopo il login)
+    dispatchEvent(new Event('studio-sync:dati'))
   }
 
   async function manda(keepalive = false, chiavi = cambiate()) {
@@ -78,19 +85,50 @@
   addEventListener('pagehide', () => { if (cambiate().length) manda(true) })
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && cambiate().length) manda(true) })
 
+  /** Mette da parte le modifiche non mandate dell'utente `id` e pulisce il browser. */
+  function svuota(id) {
+    attivo = false
+    const sospese = cambiate()
+    if (id && sospese.length) {
+      let messe = {}
+      try { messe = JSON.parse(ls.getItem(ATTESA_DI(id)) || '{}') } catch {}
+      for (const k of sospese) messe[k] = ls.getItem(k)
+      setOrig.call(ls, ATTESA_DI(id), JSON.stringify(messe))
+    }
+    for (const k of chiaviApp()) rmOrig.call(ls, k)
+    rmOrig.call(ls, CAMBIATE); rmOrig.call(ls, BASE); rmOrig.call(ls, 'studio-sync:sporco')
+    attivo = true
+  }
+
   /** All'avvio. Risponde 'ok', 'non-collegato' oppure 'offline'. */
   async function avvia() {
     let r
     try { r = await fetch('/api/progressi', { credentials: 'same-origin', cache: 'no-store' }) } catch { return 'offline' }
     if (r.status === 401) return 'non-collegato'
     if (!r.ok) return 'offline'
-    const { dati, aggiornato } = await r.json()
-    if (ls.getItem(BASE) === null && chiaviApp().length) {
+    const { dati, aggiornato, utente } = await r.json()
+    const io = String(utente)
+    const prima = ls.getItem(UTENTE)
+    if (prima !== null && prima !== io) svuota(prima) // un altro utente: i suoi dati non si vedono
+    // (prima === null con BASE già scritta: browser di prima di questa regola, i dati sono di chi è collegato)
+    setOrig.call(ls, UTENTE, io)
+    const mie = ls.getItem(ATTESA_DI(io)) // modifiche mie rimaste da parte: tornano e partono
+    if (mie !== null) {
+      try {
+        attivo = false
+        const messe = JSON.parse(mie)
+        for (const [k, v] of Object.entries(messe)) v === null ? rmOrig.call(ls, k) : setOrig.call(ls, k, v)
+        segnaCambiate([...cambiate(), ...Object.keys(messe)])
+      } catch {} finally { attivo = true }
+      rmOrig.call(ls, ATTESA_DI(io))
+    }
+    if (ls.getItem(BASE) === null && chiaviApp().length && mie === null) {
       // primo login da questo browser, che aveva già dati suoi: li manda tutti (vincono loro)
       segnaCambiate([...cambiate(), ...chiaviApp()])
     }
     if (cambiate().length) { await manda(); return 'ok' } // manda() poi allinea col server
     if (aggiornato) applica(dati, aggiornato)
+    else setOrig.call(ls, BASE, '') // utente nuovo, ancora niente sul server
     return 'ok'
   }
 
@@ -98,13 +136,19 @@
   async function esci() {
     await manda()
     await fetch('/api/logout', { method: 'POST', credentials: 'same-origin' }).catch(() => {})
-    attivo = false
-    for (const k of chiaviApp()) rmOrig.call(ls, k)
-    rmOrig.call(ls, CAMBIATE); rmOrig.call(ls, BASE); rmOrig.call(ls, 'studio-sync:sporco')
-    attivo = true
+    svuota(ls.getItem(UTENTE)) // se qualcosa non è partito (niente rete), resta da parte per la prossima volta
+    rmOrig.call(ls, UTENTE); rmOrig.call(ls, 'studio-sync:profilo')
   }
 
-  window.studioSync = { avvia, esci, manda }
-  // nelle pagine delle lezioni non c'è il login: si allinea e manda ciò che era rimasto indietro
-  if (document.documentElement.dataset.sync === 'lezione') avvia()
+  /** C'è qualcuno collegato da questo browser? (serve per entrare senza rete) */
+  const haUtente = () => ls.getItem(UTENTE) !== null
+
+  window.studioSync = { avvia, esci, manda, haUtente }
+  // nelle pagine delle lezioni non c'è il login: si allinea e manda ciò che era rimasto indietro;
+  // senza login si torna all'app, che chiede nome e password
+  if (document.documentElement.dataset.sync === 'lezione') {
+    avvia().then((esito) => {
+      if (esito === 'non-collegato' || (esito === 'offline' && !haUtente())) location.replace('/')
+    })
+  }
 })()

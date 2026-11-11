@@ -33,6 +33,12 @@ function leggi(): Compito[] {
   }
 }
 
+// dati arrivati dal server (public/sync.js, es. dopo il login): si rilegge la copia nel browser
+addEventListener('studio-sync:dati', () => {
+  cache = leggi()
+  ascoltatori.forEach((f) => f())
+})
+
 function salva(lista: Compito[]) {
   cache = lista
   try {

@@ -585,19 +585,21 @@ button { font: inherit; color: inherit; }
 /* ── Lezioni ───────────────────────────────────────────── */
 .pannello-lezioni-tutte { flex: 1 !important; display: flex; flex-direction: column; }
 .griglia-lezioni { list-style: none; margin: 0; padding: 4px 2px 8px; flex: 1; min-height: 0; overflow-y: auto;
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr)); gap: 22px; align-content: start; }
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr)); gap: 18px; align-content: start;
+  /* max-content: con overflow:hidden le schede si lascerebbero schiacciare per stare nell'altezza, tagliando testo e pulsanti */
+  grid-auto-rows: max-content; }
 .scheda-lezione { border: 3px solid var(--inchiostro); border-radius: 12px; overflow: hidden; background: var(--foglio); box-shadow: 0 5px 0 var(--inchiostro); display: flex; flex-direction: column; }
-.copertina { position: relative; display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; min-height: 150px; padding: 14px 16px;
+.copertina { position: relative; display: flex; flex-direction: column; justify-content: flex-end; gap: 2px; min-height: 92px; padding: 10px 76px 10px 14px;
   text-decoration: none; color: var(--inchiostro); border-bottom: 3px solid var(--inchiostro);
   background-color: oklch(0.86 calc(var(--c) * 0.9) var(--h));
   background-image: linear-gradient(rgba(255,255,255,.35) 2px, transparent 2px), linear-gradient(90deg, rgba(255,255,255,.35) 2px, transparent 2px);
   background-size: 22px 22px; }
 .copertina-materia { font-family: var(--font-mano); font-size: 1.15rem; }
-.copertina-titolo { font-family: var(--font-gioco); font-size: 1.7rem; line-height: 1.05; }
-.copertina-play { position: absolute; top: 14px; right: 14px; width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center;
+.copertina-titolo { font-family: var(--font-gioco); font-size: 1.5rem; line-height: 1.05; }
+.copertina-play { position: absolute; top: 50%; right: 14px; translate: 0 -50%; width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center;
   background: var(--accento); color: var(--accento-testo); font-size: 1.4rem; border: 3px solid var(--inchiostro); box-shadow: 0 4px 0 var(--inchiostro); }
 .copertina:hover .copertina-play { transform: scale(1.08); }
-.scheda-lezione-testo { padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
+.scheda-lezione-testo { padding: 10px 14px 14px; display: flex; flex-direction: column; gap: 5px; }
 .scheda-lezione-testo p { margin: 0; }
 .scheda-lezione-fonte { color: var(--inchiostro-tenue); font-size: 0.92rem; }
 .scheda-lezione-per { font-weight: 800; }
@@ -611,26 +613,59 @@ button { font: inherit; color: inherit; }
   background: var(--accento); color: var(--accento-testo); border: 2px solid var(--inchiostro); border-radius: 8px; padding: 3px 10px; box-shadow: 0 3px 0 var(--inchiostro); }
 .bottone-lezione:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--inchiostro); }
 .link-lezione { font-weight: 800; }
-/* ── Accesso (login) ─────────────────────────────────────── */
+/* ── Accesso (login): tutto in 100dvh, mai scroll di pagina ── */
 .accesso { height: 100%; display: grid; place-items: center; padding: 16px; }
 .accesso-attesa { color: #fff; font-family: var(--font-gioco); font-size: 1.4rem; }
+.accesso-login { display: flex; flex-direction: column; padding: 0; height: 100dvh; overflow: hidden; }
+.accesso-centro {
+  flex: 1; min-height: 0; width: 100%; max-width: 1080px; margin: 0 auto;
+  display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 400px); align-items: center;
+  gap: clamp(20px, 4vw, 56px); padding: clamp(14px, 3vh, 36px) 20px;
+}
+.accesso-benvenuto { color: #fff; display: grid; gap: clamp(8px, 1.8vh, 16px); min-height: 0; }
+.accesso-sopra { margin: 0; font-family: var(--font-mano); font-size: clamp(1.2rem, 2.6vh, 1.6rem); transform: rotate(-2deg); transform-origin: left; }
+.accesso-benvenuto h1 { font-size: clamp(2.4rem, 8vh, 4.6rem); line-height: .95; text-shadow: 0 5px 0 rgba(0, 0, 0, .25); }
+.accesso-fumetto {
+  position: relative; margin: 0; max-width: 34em;
+  background: #fff; color: var(--inchiostro); font-size: clamp(1rem, 2.1vh, 1.15rem); font-weight: 600;
+  border: 3px solid var(--inchiostro); border-radius: 16px; padding: 12px 16px; box-shadow: 0 5px 0 var(--inchiostro);
+}
+.accesso-fumetto::after {
+  content: ''; position: absolute; left: 34px; top: -14px; width: 22px; height: 22px; background: #fff;
+  border-left: 3px solid var(--inchiostro); border-top: 3px solid var(--inchiostro); transform: rotate(45deg);
+}
+.accesso-cosa { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.accesso-cosa li {
+  display: flex; gap: 10px; align-items: flex-start; font-size: .95rem; line-height: 1.3;
+  background: var(--linguetta); color: var(--linguetta-testo); border-radius: 8px; padding: 8px 10px;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, .3); transform: rotate(-1deg);
+}
+.accesso-cosa li:nth-child(even) { transform: rotate(1deg); }
+.accesso-cosa b { font-family: var(--font-gioco); font-weight: 400; font-size: 1.05rem; }
+.accesso-icona { font-size: 1.4rem; line-height: 1; }
 .accesso-foglio {
-  position: relative; width: min(380px, 100%); display: grid; gap: 14px;
+  position: relative; width: min(400px, 100%); justify-self: center; display: grid; gap: clamp(8px, 1.6vh, 14px);
   background: var(--foglio); border: 3px solid var(--inchiostro); border-radius: 14px;
-  padding: 34px 26px 26px; box-shadow: 0 8px 0 var(--inchiostro); transform: rotate(-1deg);
+  padding: clamp(24px, 4vh, 34px) 24px clamp(16px, 3vh, 24px); box-shadow: 0 8px 0 var(--inchiostro); transform: rotate(-1deg);
 }
 .accesso-etichetta {
   position: absolute; top: -18px; left: 20px; transform: rotate(-4deg);
   background: var(--linguetta); color: var(--linguetta-testo); font-family: var(--font-mano); font-size: 1.2rem;
   border: 3px solid var(--inchiostro); border-radius: 8px; padding: 0 12px;
 }
-.accesso-foglio h1 { font-size: 2.1rem; }
+.accesso-foglio h2 { font-size: clamp(1.6rem, 4vh, 2.1rem); }
+.accesso-spiega, .accesso-nota { margin: 0; color: var(--inchiostro-tenue); font-size: .92rem; }
+.accesso-nota { font-size: .85rem; text-align: center; }
 .accesso-foglio label { display: grid; gap: 4px; font-weight: 800; }
-.accesso-foglio input {
-  font: inherit; font-size: 1.1rem; padding: 10px 12px; color: var(--inchiostro);
+.accesso-foglio input, .impostazioni input {
+  font: inherit; font-size: 1.05rem; padding: 9px 12px; color: var(--inchiostro); width: 100%; min-width: 0;
   border: 3px solid var(--inchiostro); border-radius: 10px; background: #fff;
 }
+.accesso-pw { position: relative; display: block; }
+.accesso-pw input { padding-right: 50px; }
+.accesso-vedi { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); background: none; border: 0; cursor: pointer; font-size: 1.3rem; padding: 4px; }
 .accesso-errore { margin: 0; color: var(--penna-rossa); font-weight: 800; }
+.messaggio-ok { margin: 0; color: oklch(0.45 0.14 150); font-weight: 800; }
 .accesso-entra {
   cursor: pointer; font-family: var(--font-gioco); font-size: 1.3rem; padding: 10px;
   background: var(--accento); color: var(--accento-testo);
@@ -639,8 +674,81 @@ button { font: inherit; color: inherit; }
 .accesso-entra:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--inchiostro); }
 .accesso-entra:disabled { opacity: .6; cursor: default; }
 .accesso-offline {
-  position: fixed; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 50; margin: 0;
+  position: fixed; left: 50%; bottom: 38px; transform: translateX(-50%); z-index: 50; margin: 0;
   background: var(--stella); color: var(--inchiostro); font-weight: 800; font-size: .9rem;
   border: 2px solid var(--inchiostro); border-radius: 999px; padding: 4px 14px;
 }
+.accesso-integra { margin: 0; color: #fff; opacity: .9; font-size: .9rem; font-weight: 600; max-width: 38em; }
+.accesso-nota b { color: var(--inchiostro); }
+@media (max-height: 760px) { .accesso-cosa { display: none; } }
+@media (max-height: 560px) { .accesso-fumetto { display: none; } }
+@media (max-width: 860px) {
+  .accesso-centro { grid-template-columns: 1fr; align-content: center; gap: 22px; padding-top: 12px; padding-bottom: 8px; }
+  .accesso-benvenuto { text-align: center; justify-items: center; }
+  .accesso-sopra { transform-origin: center; }
+  .accesso-cosa { display: none; }
+  .accesso-fumetto { font-size: .95rem; padding: 10px 12px; text-align: left; }
+  .accesso-integra { font-size: .82rem; }
+  .accesso-benvenuto h1 { font-size: clamp(2rem, 6vh, 3rem); }
+}
+
+/* ── Utente collegato (barra) e impostazioni ─────────────── */
+.menu-utente { position: relative; }
+.bottone-utente {
+  display: inline-flex; align-items: center; gap: 8px; cursor: pointer; max-width: 170px;
+  background: rgba(255, 255, 255, .12); color: #fff; border: 2px solid rgba(255, 255, 255, .45);
+  border-radius: 999px; padding: 3px 12px 3px 3px; font-weight: 800;
+}
+.bottone-utente-nome { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.foto-utente {
+  flex: none; width: 36px; height: 36px; border-radius: 50%; object-fit: cover; display: grid; place-items: center;
+  background: var(--linguetta); color: var(--linguetta-testo); font-family: var(--font-gioco); font-size: 1.15rem;
+  border: 2px solid #fff;
+}
+.foto-utente.grande { width: 48px; height: 48px; font-size: 1.5rem; border-color: var(--inchiostro); }
+.foto-utente.enorme { width: clamp(72px, 13vh, 112px); height: clamp(72px, 13vh, 112px); font-size: 2.6rem; border: 3px solid var(--inchiostro); box-shadow: 0 4px 0 var(--inchiostro); }
+.menu-utente-tendina { width: 250px; }
+.menu-utente-ciao { margin: 0 0 4px; display: flex; gap: 10px; align-items: center; padding: 6px 8px 10px; border-bottom: 2px dashed var(--linea); }
+.menu-utente-ciao span { display: grid; }
+.menu-utente-ciao small { color: #777; font-size: .8rem; font-weight: 600; }
+.tavolozza button:disabled { opacity: .5; cursor: default; }
 .tavolozza-esci { border-top: 2px dashed var(--linea) !important; margin-top: 4px; font-weight: 800; color: var(--penna-rossa) !important; }
+
+.velo { position: fixed; inset: 0; z-index: 60; background: rgba(0, 0, 0, .45); display: grid; place-items: center; padding: 16px; }
+.impostazioni {
+  position: relative; width: min(520px, 100%); max-height: calc(100dvh - 32px); display: flex; flex-direction: column;
+  background: var(--foglio); color: var(--inchiostro); border: 3px solid var(--inchiostro); border-radius: 14px;
+  box-shadow: 0 8px 0 var(--inchiostro); padding: 30px 20px 18px; outline: none;
+}
+.impostazioni-etichetta {
+  position: absolute; top: -18px; left: 20px; transform: rotate(-3deg);
+  background: var(--linguetta); color: var(--linguetta-testo); font-family: var(--font-mano); font-size: 1.3rem;
+  border: 3px solid var(--inchiostro); border-radius: 8px; padding: 0 12px;
+}
+.impostazioni-chiudi { position: absolute; top: 8px; right: 10px; background: none; border: 0; font-size: 1.3rem; cursor: pointer; padding: 4px 8px; }
+.impostazioni-corpo { flex: 1; min-height: 0; overflow-y: auto; display: grid; gap: clamp(10px, 2vh, 18px); padding: 2px 4px 4px; }
+.impostazioni-blocco { display: grid; gap: 8px; }
+.impostazioni-blocco h3 { font-size: 1.2rem; }
+.impostazioni-profilo { grid-template-columns: auto 1fr; align-items: center; gap: 16px; }
+.impostazioni-foto-azioni { display: grid; gap: 8px; justify-items: start; }
+.impostazioni-riga { display: flex; gap: 8px; }
+.impostazioni-nota { margin: 0; color: var(--inchiostro-tenue); font-size: .88rem; }
+.link-piccolo { background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; color: var(--inchiostro-tenue); font-size: .9rem; }
+.bottone-secondario:disabled { opacity: .5; cursor: default; }
+
+/* ── Crediti (come nell'app Bradipo): riga sottile in fondo, fa parte del telaio ── */
+.crediti { flex: none; display: flex; justify-content: center; padding: 3px 12px 5px; }
+.crediti a { display: inline-flex; align-items: center; gap: 7px; font: 600 12.5px var(--font); color: rgba(255, 255, 255, .8); text-decoration: none; }
+.crediti a:hover { color: #fff; }
+.crediti svg { display: block; width: 21px; height: 18px; flex: none; color: #fff; }
+.crediti b { font: 900 15px/1 var(--font); letter-spacing: -.03em; color: #fff; }
+.crediti b span { font: 500 .85em ui-monospace, 'Cascadia Mono', Consolas, monospace; letter-spacing: 0; opacity: .7; }
+
+@media (max-width: 1180px) { .bottone-utente-nome { display: none; } .bottone-utente { padding: 3px; } }
+/* telefono: col pulsante dell'utente la barra resta su una riga (il marchio non va a capo) */
+@media (max-width: 760px) {
+  .marchio { white-space: nowrap; font-size: 1rem; }
+  .barra-destra { gap: 6px; }
+  .bottone-utente { padding: 1px; border-width: 2px; }
+  .foto-utente { width: 32px; height: 32px; font-size: 1rem; }
+}

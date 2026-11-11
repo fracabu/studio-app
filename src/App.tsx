@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { esci } from './components/Accesso'
 import { Avatar } from './components/Avatar'
+import { Crediti } from './components/Crediti'
+import { MenuUtente } from './components/Utente'
 import { Diario } from './components/Diario'
 import { Icona } from './components/Icona'
 import { Lezioni } from './components/Lezioni'
@@ -101,7 +102,6 @@ export function App() {
                     {p.nome}
                   </button>
                 ))}
-                <button role="menuitem" className="tavolozza-esci" onClick={esci}>Esci ↩</button>
               </div>
             )}
           </div>
@@ -111,6 +111,7 @@ export function App() {
           <a className="compagno" href="#personaggi" title={`Oggi studi con ${compagno.nome}`}>
             <Avatar p={compagno} />
           </a>
+          <MenuUtente />
         </div>
       </header>
       <main className="app">
@@ -121,6 +122,7 @@ export function App() {
         {pagina === 'materie' && <Materie />}
         {pagina === 'personaggi' && <Personaggi adesso={adesso} />}
       </main>
+      <Crediti />
       <Rivelazione />
     </div>
   )

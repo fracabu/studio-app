@@ -42,6 +42,12 @@ function leggi(): Stato {
   }
 }
 
+// dati arrivati dal server (public/sync.js, es. dopo il login): si rilegge la copia nel browser
+addEventListener('studio-sync:dati', () => {
+  stato = leggi()
+  ascoltatori.forEach((f) => f())
+})
+
 function scrivi(nuovo: Stato) {
   stato = nuovo
   try {

@@ -1,7 +1,8 @@
 // I progressi dell'utente: tutte le chiavi "studio-app:*" del browser (compiti, stelle,
 // personaggi, palette, zaino…), salvate come un unico oggetto JSON.
-//   GET /api/progressi → {dati, aggiornato}   (dati = {} e aggiornato = null se non c'è ancora niente)
-//   PUT /api/progressi  {dati: {chiave: valore | null}} → {dati, aggiornato}
+//   GET /api/progressi → {dati, aggiornato, utente}   (dati = {} e aggiornato = null se non c'è ancora niente)
+//   PUT /api/progressi  {dati: {chiave: valore | null}} → {dati, aggiornato, utente}
+// `utente` (id) serve a sync.js per non mescolare nel browser i dati di due utenti diversi.
 // Il PUT UNISCE: le chiavi mandate si aggiornano, null le cancella, quelle non mandate restano.
 // Così un browser rimasto indietro non può cancellare quello che hanno scritto gli altri.
 import { json, sql, utenteDa } from './_lib.js'
@@ -12,7 +13,7 @@ export async function GET(req: Request) {
   const id = utenteDa(req)
   if (id == null) return json({ errore: 'Non collegato' }, 401)
   const righe = (await sql()`SELECT dati, aggiornato FROM progressi WHERE utente_id = ${id}`) as { dati: unknown; aggiornato: string }[]
-  return json(righe[0] ?? { dati: {}, aggiornato: null })
+  return json({ ...(righe[0] ?? { dati: {}, aggiornato: null }), utente: id })
 }
 
 export async function PUT(req: Request) {
@@ -37,5 +38,5 @@ export async function PUT(req: Request) {
     ON CONFLICT (utente_id) DO UPDATE
       SET dati = (progressi.dati || EXCLUDED.dati) - ${togli}::text[], aggiornato = now()
     RETURNING dati, aggiornato`) as { dati: Record<string, string>; aggiornato: string }[]
-  return json(righe[0])
+  return json({ ...righe[0], utente: id })
 }
