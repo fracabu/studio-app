@@ -87,6 +87,11 @@
 
   /* Esercizi */
   .esercizio { border: 2px solid var(--linea); border-radius: 8px; padding: 14px 16px; margin-bottom: 18px; }
+  /* parole in lingua straniera (lang="es"…): si toccano e si sentono */
+  .carta [lang], .esercizio [lang] { cursor: pointer; text-decoration: underline dotted 2px; text-underline-offset: 3px; border-radius: 4px; }
+  .carta [lang]:hover, .esercizio [lang]:hover { background: var(--linguetta); }
+  .carta [lang].suona, .esercizio [lang].suona { background: var(--linguetta); outline: 2px solid var(--inchiostro); }
+  .pronuncia-avviso { margin: 0 0 12px; }
   .esercizio h3 { font-size: 1.2rem; margin-bottom: 4px; }
   .metodo { background: #f3f7ff; border-left: 5px solid var(--accento); border-radius: 6px; padding: 8px 12px; margin: 8px 0; }
   .soluzione { display: none; background: var(--verde); border-radius: 6px; padding: 8px 12px; margin-top: 8px; font-family: var(--font-mano); font-size: 1.15rem; }
@@ -416,6 +421,41 @@ filtro.addEventListener('click', (ev) => {
   document.querySelectorAll('.filtro button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)))
   document.querySelectorAll('.carta').forEach((c) => { c.style.display = !b.dataset.zona || c.dataset.zona === b.dataset.zona ? '' : 'none' })
 })
+
+/* ── Pronuncia: le parole marcate con lang="es" (o un'altra lingua) si ascoltano con un tocco.
+   MP3 in audio/<lingua>-<firma>.mp3 (scripts/lezione-audio.mjs, stessa firma); se manca, la voce del browser. ── */
+function firmaTesto(t) {
+  t = t.replace(/\s+/g, ' ').trim()
+  let h = 0x811c9dc5
+  for (const ch of t) { h ^= ch.codePointAt(0); h = Math.imul(h, 0x01000193) >>> 0 }
+  return h.toString(16).padStart(8, '0')
+}
+const VOCI_BROWSER = { es: 'es-ES', en: 'en-GB', fr: 'fr-FR', de: 'de-DE' }
+function pronuncia(el) {
+  catena = false; zitto()
+  document.querySelectorAll('[lang].suona').forEach((x) => x.classList.remove('suona'))
+  const testo = el.textContent.replace(/\s+/g, ' ').trim()
+  el.classList.add('suona')
+  const fine = () => el.classList.remove('suona')
+  const browser = () => {
+    if (!('speechSynthesis' in window)) return fine()
+    const u = new SpeechSynthesisUtterance(testo); u.lang = VOCI_BROWSER[el.lang] || el.lang; u.rate = 0.9
+    u.onend = fine; u.onerror = fine
+    speechSynthesis.speak(u)
+  }
+  lettore.src = `audio/${el.lang}-${firmaTesto(testo)}.mp3`
+  lettore.onended = fine
+  lettore.onerror = browser
+  lettore.play().catch(browser)
+}
+document.addEventListener('click', (ev) => {
+  const el = ev.target.closest('.carta [lang], .esercizio [lang]'); if (!el) return
+  ev.preventDefault(); pronuncia(el)
+})
+for (const id of ['schede', 'esercizi']) {
+  const box = document.getElementById(id)
+  if (box.querySelector('[lang]')) box.insertAdjacentHTML('afterbegin', '<p class="nota pronuncia-avviso">🔊 Tocca le parole sottolineate per sentire come si dicono.</p>')
+}
 
 /* ── Quiz ── */
 const DOMANDE = L.quiz

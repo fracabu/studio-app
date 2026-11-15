@@ -5,7 +5,9 @@
 <!-- stelle e risposte finiscono anche nel database, se nell'app si è fatto il login -->
 <script src="/sync.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Arte: Mesopotamia ed Egitto</title>
+<title>Lezione</title>
+<!-- Modello di lezione: tutti i contenuti (titolo, linguette, schede, esercizi, quiz, interrogazione, Drive)
+     stanno in dati.js; questa pagina è uguale per ogni lezione. Gli MP3: node scripts/lezione-audio.mjs <id>. -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Lilita+One&family=Patrick+Hand&display=swap" rel="stylesheet" />
@@ -72,8 +74,28 @@
   .schede { columns: 360px; column-gap: 18px; }
   .schede > .carta { break-inside: avoid; margin-bottom: 18px; }
   .carta { border: 2px solid var(--linea); border-radius: 8px; padding: 12px 16px; scroll-margin-top: 10px; overflow-wrap: anywhere; }
-  .carta[data-zona='Mesopotamia'] { background: var(--lapislazzuli); }
-  .carta[data-zona='Egitto'] { background: var(--sabbia); }
+  .carta table { border-collapse: collapse; width: 100%; font-size: .95rem; margin-top: 6px; }
+  .carta th, .carta td { border-bottom: 1px solid var(--linea); padding: 5px 6px; text-align: left; vertical-align: top; }
+  .carta th { font-family: var(--font-gioco); font-weight: 400; }
+  .formula { font-family: var(--font-gioco); font-size: 1.15rem; background: #fff7d6; border: 2px dashed var(--inchiostro); border-radius: 8px; padding: 6px 10px; margin: 6px 0; display: inline-block; }
+  .parola { font-family: var(--font-mano); font-size: 1.15rem; }
+  .attento { background: #ffe3e0; border-left: 5px solid var(--penna-rossa); border-radius: 6px; padding: 8px 12px; margin: 8px 0; }
+  sup { font-size: .7em; line-height: 0; }
+  .figura { text-align: center; margin: 8px 0; }
+  .figura svg { width: 100%; max-width: 300px; height: auto; display: block; margin: 0 auto; }
+  .figura b { font-family: var(--font-gioco); font-weight: 400; }
+
+  /* Esercizi */
+  .esercizio { border: 2px solid var(--linea); border-radius: 8px; padding: 14px 16px; margin-bottom: 18px; }
+  /* parole in lingua straniera (lang="es"…): si toccano e si sentono */
+  .carta [lang], .esercizio [lang] { cursor: pointer; text-decoration: underline dotted 2px; text-underline-offset: 3px; border-radius: 4px; }
+  .carta [lang]:hover, .esercizio [lang]:hover { background: var(--linguetta); }
+  .carta [lang].suona, .esercizio [lang].suona { background: var(--linguetta); outline: 2px solid var(--inchiostro); }
+  .pronuncia-avviso { margin: 0 0 12px; }
+  .esercizio h3 { font-size: 1.2rem; margin-bottom: 4px; }
+  .metodo { background: #f3f7ff; border-left: 5px solid var(--accento); border-radius: 6px; padding: 8px 12px; margin: 8px 0; }
+  .soluzione { display: none; background: var(--verde); border-radius: 6px; padding: 8px 12px; margin-top: 8px; font-family: var(--font-mano); font-size: 1.15rem; }
+  .soluzione.aperta { display: block; }
   .carta.suona { outline: 4px solid var(--linguetta); }
   .carta.lampeggia { animation: lampo 1.2s 2; }
   @keyframes lampo { 50% { outline: 4px solid var(--penna-rossa); } }
@@ -140,8 +162,10 @@
   .avvio h2 { font-size: 2.1rem; }
 
   @media (max-width: 760px) {
-    .linguette { margin-left: 0; width: 100%; justify-content: space-between; }
-    .linguette button { min-width: 0; flex: 1; font-size: 1.05rem; padding: 6px 4px 4px; }
+    .linguette { margin-left: 0; width: 100%; justify-content: space-between; gap: 5px; }
+    /* 5 linguette su ~360 px: testo che si stringe, e "Interrogazione" con i puntini se non ci sta */
+    .linguette button { min-width: 0; flex: 1 1 0; font-size: clamp(.8rem, 3.6vw, 1.05rem); padding: 6px 3px 4px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .risposte { grid-template-columns: 1fr; }
     main { padding-top: 26px; }
     /* testata su due righe: ← App · titolo · stelle, poi le linguette */
@@ -150,14 +174,16 @@
     .titolo { order: 2; flex: 1; min-width: 0; font-size: 1.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .titolo small { display: none; }
     .contatore { order: 3; flex: none; font-size: 1rem; padding: 1px 10px 1px 7px; }
-    .linguette { order: 4; gap: 5px; }
-    .linguette button { flex: 1 1 0; font-size: clamp(.8rem, 3.6vw, 1.05rem); padding: 6px 3px 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .linguette { order: 4; }
   }
   .corto { display: none; }
   @media (max-width: 480px) {
     .linguette button i { display: none; }
     .lungo { display: none; }
     .corto { display: inline; }
+    .carta { padding: 10px 12px; }
+    .carta h2 { font-size: 1.2rem; overflow-wrap: normal; }
+    .ascolta { padding: 2px 10px; }
   }
 </style>
 </head>
@@ -165,12 +191,13 @@
 <div class="telaio">
   <header class="barra">
     <a class="indietro" href="/#lezioni">← App</a>
-    <h1 class="titolo">Mesopotamia ed Egitto <small>Arte · pag. 25–43</small></h1>
+    <h1 class="titolo" id="titolo"></h1>
     <nav class="linguette" role="tablist">
+      <button role="tab" data-vista="video" aria-selected="false"><i>🎬</i> Video</button>
       <button role="tab" data-vista="scheda" aria-selected="true"><i>📄</i> Schede</button>
+      <button role="tab" data-vista="esercizi" aria-selected="false"><i>✏️</i> Esercizi</button>
       <button role="tab" data-vista="quiz" aria-selected="false"><i>⭐</i> Quiz</button>
       <button role="tab" data-vista="interroga" aria-selected="false"><i>🎤</i> <span class="lungo">Interrogazione</span><span class="corto">Interroga</span></button>
-      <button role="tab" data-vista="video" aria-selected="false"><i>🎬</i> Video</button>
     </nav>
     <span class="contatore" title="Le tue stelle">★ <span id="stelle">0</span></span>
   </header>
@@ -182,13 +209,17 @@
         <span class="etichetta">Schede per ripassare · leggi o ascolta</span>
         <div class="comandi-schede">
           <button class="bottone giallo" id="ascolta-tutto">▶ Ascolta tutte</button>
-          <span class="filtro" role="group" aria-label="Mostra">
-            <button data-zona="" aria-pressed="true">Tutte</button>
-            <button data-zona="Mesopotamia" aria-pressed="false">Mesopotamia</button>
-            <button data-zona="Egitto" aria-pressed="false">Egitto</button>
-          </span>
+          <span class="filtro" role="group" aria-label="Mostra"></span>
         </div>
         <div class="scorre"><div class="schede" id="schede"></div></div>
+      </div>
+    </section>
+
+    <!-- ESERCIZI -->
+    <section class="vista" id="vista-esercizi">
+      <div class="pannello">
+        <span class="etichetta">Esercizi guidati</span>
+        <div class="scorre" id="esercizi" style="padding-top:12px"></div>
       </div>
     </section>
 
@@ -211,7 +242,7 @@
     <!-- VIDEO -->
     <section class="vista" id="vista-video">
       <div class="pannello">
-        <span class="etichetta">Video · 7 minuti per ripassare tutto</span>
+        <span class="etichetta">Video · guardalo per ripassare tutto</span>
         <div class="video-box" id="video-box">
           <video id="video" src="video.mp4" controls playsinline preload="metadata"></video>
         </div>
@@ -226,6 +257,15 @@
 <script>
 const L = window.LEZIONE
 const ID = L.id
+document.title = `${L.materia}: ${L.titolo}`
+document.getElementById('titolo').innerHTML = `${L.titolo} <small>${L.materia} · pag. ${L.pagine}</small>`
+// solo le linguette della lezione, nell'ordine di dati.js; la prima si apre
+const VISTE = L.sezioni
+const nav = document.querySelector('.linguette')
+VISTE.forEach((v) => { const b = nav.querySelector(`[data-vista="${v}"]`); if (b) nav.appendChild(b) })
+nav.querySelectorAll('button').forEach((b) => { if (!VISTE.includes(b.dataset.vista)) b.remove() })
+document.querySelectorAll('.vista').forEach((s) => s.classList.toggle('attiva', s.id === 'vista-' + VISTE[0]))
+nav.querySelectorAll('button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.vista === VISTE[0])))
 
 /* ── Stelle: stesso archivio dell'app (src/lib/premi.ts) ── */
 const CHIAVE_PREMI = 'studio-app:premi'
@@ -250,7 +290,7 @@ mostraStelle()
 const lettore = new Audio()
 let fineAudio = null
 function testoPulito(html) {
-  const d = document.createElement('div'); d.innerHTML = html
+  const d = document.createElement('div'); d.innerHTML = html.replace(/<svg[\s\S]*?<\/svg>/g, '')
   return d.textContent.replace(/→/g, ', ').replace(/\ba\.C\./g, 'avanti Cristo').replace(/\s+/g, ' ').trim()
 }
 function zitto() {
@@ -278,7 +318,6 @@ function suona(file, testo) {
 }
 
 /* ── Linguette ── */
-const VISTE = ['scheda', 'quiz', 'interroga', 'video']
 const linguette = document.querySelectorAll('.linguette button')
 function apri(nome) {
   linguette.forEach((b) => b.setAttribute('aria-selected', String(b.dataset.vista === nome)))
@@ -291,7 +330,7 @@ function apri(nome) {
 /* ── Video ──
    Sul PC di casa c'è video.mp4 accanto alla pagina (fuori da git). Online non c'è:
    si passa al video su Google Drive (come scienze-temperatura). Finché DRIVE_ID è vuoto, "in preparazione". */
-const DRIVE_ID = '1SI8f0fzHcigL46px4E0GlNaRnBLvL16R'
+const DRIVE_ID = L.driveId || ''
 function fermaVideo() {
   const v = document.getElementById('video'); if (v) v.pause()
   const f = document.getElementById('video-box').querySelector('iframe'); if (f && f.src !== 'about:blank') { const s = f.src; f.src = 'about:blank'; f.dataset.src = s }
@@ -308,7 +347,7 @@ function videoDaDrive() {
 }
 document.getElementById('video').addEventListener('error', videoDaDrive)
 document.getElementById('video').addEventListener('ended', () => registra(`video:${ID}`, 'video', 5))
-document.querySelector('[data-vista="video"]').addEventListener('click', () => {
+document.querySelector('[data-vista="video"]')?.addEventListener('click', () => {
   const f = document.getElementById('video-box').querySelector('iframe'); if (f && f.dataset.src) { f.src = f.dataset.src; delete f.dataset.src }
 })
 linguette.forEach((b) => b.addEventListener('click', () => apri(b.dataset.vista)))
@@ -324,6 +363,29 @@ const htmlScheda = (s, i) => `
     ${s.html}
   </article>`
 document.getElementById('schede').innerHTML = L.schede.map(htmlScheda).join('')
+// colori e filtri delle zone (facoltativi): zone: [{ nome, colore }]
+const zone = L.zone || []
+document.querySelectorAll('.carta').forEach((c) => { const z = zone.find((x) => x.nome === c.dataset.zona); if (z) c.style.background = z.colore })
+const filtro = document.querySelector('.filtro')
+if (zone.length > 1) filtro.innerHTML = '<button data-zona="" aria-pressed="true">Tutte</button>' + zone.map((z) => `<button data-zona="${z.nome}" aria-pressed="false">${z.nome}</button>`).join('')
+if (L.audio === false) { document.getElementById('ascolta-tutto').remove(); document.querySelectorAll('[data-ascolta]').forEach((b) => b.remove()) }
+
+/* ── Esercizi (nostri, non quelli del libro) ── */
+const ESERCIZI = L.esercizi || []
+document.getElementById('esercizi').innerHTML = ESERCIZI.map((e, i) => `
+  <div class="esercizio">
+    <h3>${i + 1}. ${e.titolo}</h3>
+    <p>${e.testo}</p>
+    <div class="metodo">💡 <b>Come si fa:</b> ${e.metodo}</div>
+    <button class="bottone bianco" data-sol="${i}">Prova da solo, poi controlla ✔</button>
+    <div class="soluzione" id="sol-${i}">${e.soluzione}</div>
+  </div>`).join('')
+document.getElementById('esercizi').addEventListener('click', (ev) => {
+  const b = ev.target.closest('[data-sol]'); if (!b) return
+  const s = document.getElementById('sol-' + b.dataset.sol)
+  s.classList.toggle('aperta')
+  b.textContent = s.classList.contains('aperta') ? 'Nascondi la soluzione' : 'Prova da solo, poi controlla ✔'
+})
 
 let catena = false
 async function ascoltaScheda(id, bottone) {
@@ -343,7 +405,7 @@ document.getElementById('schede').addEventListener('click', (ev) => {
   catena = false; ascoltaScheda(b.dataset.ascolta, b)
 })
 const tutto = document.getElementById('ascolta-tutto')
-tutto.addEventListener('click', async () => {
+tutto?.addEventListener('click', async () => {
   if (catena) { catena = false; zitto(); tutto.textContent = '▶ Ascolta tutte'; return }
   catena = true; tutto.textContent = '■ Ferma'
   const visibili = [...document.querySelectorAll('.carta')].filter((c) => c.style.display !== 'none').map((c) => c.id.replace('carta-', ''))
@@ -354,11 +416,46 @@ tutto.addEventListener('click', async () => {
   }
   catena = false; tutto.textContent = '▶ Ascolta tutte'
 })
-document.querySelector('.filtro').addEventListener('click', (ev) => {
+filtro.addEventListener('click', (ev) => {
   const b = ev.target.closest('button'); if (!b) return
   document.querySelectorAll('.filtro button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)))
   document.querySelectorAll('.carta').forEach((c) => { c.style.display = !b.dataset.zona || c.dataset.zona === b.dataset.zona ? '' : 'none' })
 })
+
+/* ── Pronuncia: le parole marcate con lang="es" (o un'altra lingua) si ascoltano con un tocco.
+   MP3 in audio/<lingua>-<firma>.mp3 (scripts/lezione-audio.mjs, stessa firma); se manca, la voce del browser. ── */
+function firmaTesto(t) {
+  t = t.replace(/\s+/g, ' ').trim()
+  let h = 0x811c9dc5
+  for (const ch of t) { h ^= ch.codePointAt(0); h = Math.imul(h, 0x01000193) >>> 0 }
+  return h.toString(16).padStart(8, '0')
+}
+const VOCI_BROWSER = { es: 'es-ES', en: 'en-GB', fr: 'fr-FR', de: 'de-DE' }
+function pronuncia(el) {
+  catena = false; zitto()
+  document.querySelectorAll('[lang].suona').forEach((x) => x.classList.remove('suona'))
+  const testo = el.textContent.replace(/\s+/g, ' ').trim()
+  el.classList.add('suona')
+  const fine = () => el.classList.remove('suona')
+  const browser = () => {
+    if (!('speechSynthesis' in window)) return fine()
+    const u = new SpeechSynthesisUtterance(testo); u.lang = VOCI_BROWSER[el.lang] || el.lang; u.rate = 0.9
+    u.onend = fine; u.onerror = fine
+    speechSynthesis.speak(u)
+  }
+  lettore.src = `audio/${el.lang}-${firmaTesto(testo)}.mp3`
+  lettore.onended = fine
+  lettore.onerror = browser
+  lettore.play().catch(browser)
+}
+document.addEventListener('click', (ev) => {
+  const el = ev.target.closest('.carta [lang], .esercizio [lang]'); if (!el) return
+  ev.preventDefault(); pronuncia(el)
+})
+for (const id of ['schede', 'esercizi']) {
+  const box = document.getElementById(id)
+  if (box.querySelector('[lang]')) box.insertAdjacentHTML('afterbegin', '<p class="nota pronuncia-avviso">🔊 Tocca le parole sottolineate per sentire come si dicono.</p>')
+}
 
 /* ── Quiz ── */
 const DOMANDE = L.quiz
@@ -394,7 +491,7 @@ function fineQuiz() {
   const perfetto = giuste === DOMANDE.length
   if (perfetto) registra(`quiz:${ID}:perfetto`, 'quiz', 5)
   quiz.innerHTML = barraQuiz() + `<div class="fine"><div>
-    <h2>${perfetto ? 'Tutto giusto!' : giuste >= 14 ? 'Bravissimo!' : giuste >= 10 ? 'Bene!' : 'Si può fare meglio!'}</h2>
+    <h2>${perfetto ? 'Tutto giusto!' : giuste >= DOMANDE.length * 0.75 ? 'Bravissimo!' : giuste >= DOMANDE.length / 2 ? 'Bene!' : 'Si può fare meglio!'}</h2>
     <p class="stelle-grandi">${'★'.repeat(Math.max(1, Math.round(giuste / DOMANDE.length * 5)))}</p>
     <p><b>${giuste} su ${DOMANDE.length}</b> risposte giuste${perfetto ? ' · +5 stelle bonus' : ''}.</p>
     <p class="nota">Le stelle valgono una volta sola per domanda: rifare il quiz serve per ripassare.</p>
@@ -437,8 +534,8 @@ function schermataAvvio() {
   attiva = false
   box.innerHTML = `<div class="avvio"><div>
     <div class="prof">🧑‍🏫</div>
-    <h2>Interrogazione di arte</h2>
-    <p>Ti faccio <b>${L.interrogazione.length} domande</b> su Mesopotamia ed Egitto, a voce. Rispondi <b>scrivendo</b> o <b>parlando</b> col microfono.<br>
+    <h2>Interrogazione di ${L.materia.toLowerCase()}</h2>
+    <p>Ti faccio <b>${L.interrogazione.length} domande</b> su ${L.argomento || L.titolo.toLowerCase()}, a voce. Rispondi <b>scrivendo</b> o <b>parlando</b> col microfono.<br>
     Se la risposta è giusta si va avanti. Se manca qualcosa, ripassi quel pezzo e te la richiedo alla fine.</p>
     <div class="scelte-avvio">
       <label>Tempo per risposta
@@ -455,7 +552,7 @@ function schermataAvvio() {
     coda = document.getElementById('mescola').checked ? mescola(idx) : idx
     tentativi = {}; alPrimoColpo = 0; attiva = true
     box.innerHTML = '<div class="cattedra"><div class="prof parla">🧑‍🏫</div><p class="domanda-prof">Si comincia…</p></div>'
-    await suona('inizio.mp3', 'Bene, cominciamo l\'interrogazione di arte. Prima domanda.')
+    await suona('inizio.mp3', `Bene, cominciamo l'interrogazione di ${L.materia.toLowerCase()}. Prima domanda.`)
     if (attiva) prossima()
   })
 }

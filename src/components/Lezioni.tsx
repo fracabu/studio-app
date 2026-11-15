@@ -8,7 +8,9 @@ const fmtGiorno = new Intl.DateTimeFormat('it-IT', { weekday: 'long', day: 'nume
 /** Vista "Lezioni": una scheda per lezione, con video, scheda per studiare, esercizi e quiz. */
 export function Lezioni() {
   const premi = usePremi()
-  const ordinate = [...LEZIONI].sort((a, b) => (b.perIl[0] ?? '').localeCompare(a.perIl[0] ?? ''))
+  // una lezione può servire per più giorni (le potenze: 12/11 e 16/11): conta il più recente
+  const ultimo = (l: Lezione) => [...l.perIl].sort().at(-1) ?? ''
+  const ordinate = [...LEZIONI].sort((a, b) => ultimo(b).localeCompare(ultimo(a)))
 
   const stato = (l: Lezione) => {
     const ev = premi.eventi
@@ -27,7 +29,7 @@ export function Lezioni() {
           {ordinate.map((l) => {
             const m = MATERIE[l.materia]
             const s = stato(l)
-            const giorno = l.perIl[0] ? new Date(l.perIl[0] + 'T12:00') : null
+            const giorno = ultimo(l) ? new Date(ultimo(l) + 'T12:00') : null
             return (
               <li key={l.id} className="scheda-lezione" style={coloreMateria(m.hue, m.chroma)}>
                 <a className="copertina" href={urlLezione(l)}>

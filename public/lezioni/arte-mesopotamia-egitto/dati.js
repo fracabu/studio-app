@@ -1,9 +1,19 @@
 /* Contenuti della lezione di arte: Mesopotamia ed Egitto.
- * Fonte: La stanza delle meraviglie, Volume A1, pag. 25-43 (trascrizione in
+ * Fonte: La stanza delle meraviglie, Volume A1, pag. 25-43 e, dal 15/11, 46-47 (Scopriamo il patrimonio:
+ * la tomba di Nefertari, schede 14-16, per il 16/11) (appunti in
  * prima-media-llm-wiki/raw/libri/arte-la-stanza-delle-meraviglie/). Testi riscritti con parole nostre.
  * Lo legge la pagina (window.LEZIONE) e lo legge scripts/lezione-audio.mjs per fare gli MP3. */
 window.LEZIONE = {
   id: 'arte-mesopotamia-egitto',
+  // campi per la pagina comune (index.html uguale per tutte le lezioni dal 12/11):
+  // prima stavano scritti nella pagina di arte (titolo, linguette, video, colori delle zone)
+  materia: 'Arte',
+  titolo: 'Mesopotamia ed Egitto',
+  argomento: 'Mesopotamia ed Egitto',
+  pagine: '25–47',
+  sezioni: ['scheda', 'quiz', 'interroga', 'video'],
+  driveId: '1SI8f0fzHcigL46px4E0GlNaRnBLvL16R',
+  zone: [{ nome: 'Mesopotamia', colore: '#e6edff' }, { nome: 'Egitto', colore: '#fff4d9' }],
 
   /* ── Schede: html per leggere; l'audio si fa dal testo senza tag ── */
   schede: [
@@ -124,6 +134,30 @@ window.LEZIONE = {
 <p><b>Caccia e pesca nella palude</b> (tomba di Nebamon, British Museum): Nebamon è il più grande; figura scomposta (testa e gambe di profilo, busto di fronte); un'oca fa da richiamo; il figlio abbraccia la gamba del padre; c'è anche un <b>gatto</b> che caccia.</p>
 <p><b>Oreficeria</b>: gioielli con fiori e animali, come il pettorale a scarabeo di Tutankhamon.</p>`,
     },
+    {
+      id: 's14', titolo: 'La tomba di Nefertari', pag: '46', zona: 'Egitto',
+      html: `<p><b>Nefertari</b> era la moglie amata del faraone <b>Ramses II</b>, lo stesso di Abu Simbel. La sua tomba (circa <b>1265 a.C.</b>) è la più bella della <span class="evid">Valle delle Regine</span>, vicino all'antica Tebe, oggi Luxor, dove venivano sepolte le madri e le mogli dei faraoni.</p>
+<p>Le <b>pitture sulle pareti</b> raccontano il <span class="evid">viaggio dell'anima</span> della regina nel regno dei morti: per purificarsi usa formule magiche, preghiere e offerte agli dèi.</p>
+<p>Nella scena più famosa Nefertari, con una veste bianca leggera e un collare d'oro, offre due vasi di vino ad <b>Hathor</b>, la dea del cielo, che ha la pelle dorata.</p>
+<p>Lo stile è quello tipico egizio: <b>figure piatte</b>, con volto, braccia e gambe <b>di profilo</b> e il busto <b>di fronte</b>. I <b>colori vivaci</b> risaltano sul fondo bianco, che dava luce alla tomba buia.</p>
+<p>Il soffitto della camera funeraria è dipinto di <b>blu con stelle a cinque punte</b>: è il cielo.</p>`,
+    },
+    {
+      id: 's15', titolo: 'Nefertari: rilievi, scoperta e restauro', pag: '46-47', zona: 'Egitto',
+      html: `<p><b>Dettagli in rilievo.</b> Volto, mani, braccia e il copricapo a forma di avvoltoio sporgono dal muro. Gli artisti li modellavano nella <span class="evid">muna</span>, un impasto di <b>argilla, calcare e paglia</b> steso sulla roccia; sopra mettevano uno strato più fine e un velo di <b>gesso</b>, e solo alla fine i colori.</p>
+<p><b>La scoperta.</b> Nel <b>1904</b> la trovò <span class="evid">Ernesto Schiaparelli</span>, direttore del <b>Museo Egizio di Torino</b>. Le pitture erano bellissime, ma in pericolo: la tomba era stata saccheggiata già nell'antichità, non era più chiusa e ci era entrata l'<b>acqua piovana</b>.</p>
+<p>L'acqua aveva fatto nascere <b>cristalli di sale</b> sotto le pitture, che così si staccavano dalla roccia.</p>
+<p><b>Il restauro.</b> I restauratori hanno tolto polvere e cristalli, hanno <b>incollato i pezzi</b> staccati, hanno iniettato <b>resine</b> per rinforzare le pitture e hanno usato una malta simile a quella degli antichi Egizi.</p>`,
+    },
+    {
+      id: 's16', titolo: "Perché le opere d'arte si rovinano?", pag: '47', zona: 'Egitto',
+      html: `<ul><li><b>Natura:</b> batteri, funghi, insetti e inquinamento dell'aria.</li>
+<li><span class="evid">Umidità</span>: è il nemico più frequente. Fa macchie, fa staccare il colore dal muro che la assorbe e, nei dipinti su legno, fa gonfiare e deformare la tavola.</li>
+<li><b>Caldo e freddo</b> che si alternano: aprono crepe nei dipinti, nell'intonaco e perfino nella pietra.</li>
+<li><b>Troppa luce</b>: i colori sbiadiscono, ingialliscono e alla fine si staccano.</li>
+<li><b>Le persone</b>: nella tomba di Nefertari i restauratori hanno dovuto togliere le impronte delle mani di visitatori che avevano toccato le pitture.</li></ul>
+<p class="nota">Per questo i musei controllano umidità, temperatura e luce, e chiedono di non toccare le opere.</p>`,
+    },
   ],
 
   /* ── Quiz a scelta: la prima risposta è quella giusta (la pagina le mescola) ── */
@@ -146,6 +180,12 @@ window.LEZIONE = {
     { d: 'Che cos\'è il canone nell\'arte egizia?', r: ['Le regole fisse delle proporzioni', 'Un tipo di colonna', 'Una tomba a gradoni', 'Un colore'], s: 'Le figure si disegnano su un reticolo con proporzioni fisse.' },
     { d: 'Di che pietra è la statua di Chefren in trono?', r: ['Diorite', 'Alabastro', 'Marmo', 'Lapislazzuli'], s: 'Una pietra durissima, difficile da lavorare.' },
     { d: 'Nella pittura egizia, perché alcune figure sono più grandi?', r: ['Sono più importanti (gerarchia)', 'Sono più vicine', 'Sono più vecchie', 'Il pittore sbagliava'], s: 'Dèi, faraoni e funzionari sono più grandi di contadini e artigiani.' },
+    { d: 'Chi era Nefertari?', r: ['La moglie amata del faraone Ramses II', 'La dea del cielo', 'La figlia di Tutankhamon', 'Una sacerdotessa sumera'], s: 'Ramses II fece costruire per lei anche un tempio ad Abu Simbel.' },
+    { d: 'Dove si trova la tomba di Nefertari?', r: ['Nella Valle delle Regine, vicino a Luxor', 'Dentro la piramide di Cheope', 'Ad Abu Simbel', 'A Babilonia'], s: 'Nella Valle delle Regine erano sepolte le madri e le mogli dei faraoni.' },
+    { d: 'Chi scoprì la tomba di Nefertari, e quando?', r: ['Ernesto Schiaparelli, nel 1904', 'Howard Carter, nel 1922', 'Napoleone, nel 1798', 'Imhotep, nel 2600 a.C.'], s: 'Schiaparelli dirigeva il Museo Egizio di Torino. Carter invece scoprì Tutankhamon.' },
+    { d: 'Che cosa rovinava le pitture della tomba di Nefertari?', r: ['L\'acqua, che formava cristalli di sale sotto il colore', 'Un incendio', 'I terremoti', 'La sabbia del deserto'], s: 'Con i cristalli di sale le pitture si staccavano dalla roccia.' },
+    { d: 'Che cos\'è la muna?', r: ['Un impasto di argilla, calcare e paglia per i rilievi', 'Il blu del soffitto', 'Una formula magica', 'Il collare d\'oro della regina'], s: 'Ci modellavano volto, mani e copricapo; sopra gesso e poi colori.' },
+    { d: 'Che cosa fa la troppa luce a un dipinto?', r: ['Lo fa sbiadire e ingiallire', 'Lo rende più brillante', 'Lo fa gonfiare', 'Niente'], s: 'Per questo nei musei la luce è controllata.' },
   ],
 
   /* ── Interrogazione: domande aperte. `concetti` = gruppi di parole; ne servono `minimo`.
@@ -205,5 +245,14 @@ window.LEZIONE = {
     { d: 'Come dipingevano gli Egizi?', scheda: 's13', minimo: 3,
       concetti: [['tempera'], ['uovo', 'albume', 'terre', 'mescol'], ['gerarchi', 'più grand', 'importan'], ['profilo', 'scompost'], ['contorno', 'linea'], ['religios', 'tomb', 'aldil']],
       risposta: 'Con la pittura a tempera: terre colorate mescolate con acqua, albume e gomma. Le figure più importanti sono più grandi (gerarchia), testa e gambe di profilo e busto di fronte, con una linea di contorno netta. Avevano funzione religiosa.' },
+    { d: 'Che cosa raccontano le pitture della tomba di Nefertari e come sono fatte?', scheda: 's14', minimo: 3,
+      concetti: [['anima', 'aldil', 'regno dei morti', 'viaggio'], ['hathor', 'dea', 'offr', 'vino'], ['profilo', 'piatt', 'di fronte', 'frontal'], ['colori', 'bianco', 'vivac', 'brillant'], ['rilievo', 'muna', 'gesso'], ['stelle', 'cielo', 'soffitto']],
+      risposta: 'Raccontano il viaggio dell\'anima della regina nel regno dei morti; nella scena più famosa Nefertari offre il vino alla dea Hathor. Le figure sono piatte, di profilo con il busto di fronte, con colori vivaci sul fondo bianco. Alcuni dettagli sono in rilievo, modellati nella muna, e il soffitto è blu con le stelle.' },
+    { d: 'Come è stata scoperta e salvata la tomba di Nefertari?', scheda: 's15', minimo: 3,
+      concetti: [['schiaparelli', '1904', 'torino'], ['acqua', 'pioggia', 'piovana', 'umidit'], ['sale', 'cristall'], ['restaur', 'resin', 'incoll', 'malta', 'polvere']],
+      risposta: 'La scoprì Ernesto Schiaparelli, del Museo Egizio di Torino, nel 1904. Era stata saccheggiata e ci era entrata l\'acqua, che aveva formato cristalli di sale sotto le pitture. I restauratori hanno tolto polvere e sale, incollato i pezzi e rinforzato le pitture con le resine.' },
+    { d: 'Perché le opere d\'arte si rovinano?', scheda: 's16', minimo: 3,
+      concetti: [['umidit', 'acqua'], ['temperatura', 'caldo', 'freddo'], ['luce', 'sole'], ['batteri', 'funghi', 'insetti', 'inquinament'], ['uomo', 'visitator', 'mani', 'persone', 'tocca']],
+      risposta: 'Per l\'umidità, che fa macchie e stacca il colore; per gli sbalzi di caldo e freddo, che aprono crepe; per la troppa luce, che fa sbiadire i colori; per batteri, funghi, insetti e inquinamento; e per le persone, per esempio chi tocca le pitture con le mani.' },
   ],
 }
