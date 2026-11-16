@@ -99,6 +99,15 @@ export const LEZIONI: Lezione[] = [
     domande: 20,
     sezioni: ['scheda', 'esercizi', 'quiz'],
   },
+  {
+    id: 'spagnolo-repaso-unidades-1-2',
+    materia: 'spagnolo',
+    titolo: 'Repaso: unidades 1 y 2',
+    fonte: '¡Venga, vamos! 1 · ripasso unità 1-2 · pag. 65-67',
+    perIl: ['2026-11-20'],
+    domande: 22,
+    sezioni: ['scheda', 'esercizi', 'quiz'],
+  },
 ]
 
 /** Indirizzo completo: con la sola barra finale il server di Vite rimanda all'app. */
