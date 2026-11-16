@@ -93,6 +93,12 @@
   .carta [lang].suona, .esercizio [lang].suona { background: var(--linguetta); outline: 2px solid var(--inchiostro); }
   .pronuncia-avviso { margin: 0 0 12px; }
   .esercizio h3 { font-size: 1.2rem; margin-bottom: 4px; }
+  /* caselle dove scrivere: font ≥16px, se no il telefono fa lo zoom */
+  .esercizio input[data-campo] { font: 1.2rem var(--font-mano); color: var(--inchiostro); background: #fffbe6; border: 0; border-bottom: 2px dashed var(--inchiostro); border-radius: 4px 4px 0 0; padding: 0 6px; }
+  .esercizio input[data-campo]:focus { outline: 2px solid var(--accento); outline-offset: 1px; border-bottom-style: solid; }
+  .esercizio .buco { width: 9ch; max-width: 100%; margin: 2px 0; }
+  @supports (field-sizing: content) { .esercizio .buco { width: auto; field-sizing: content; min-width: 7ch; } }
+  .esercizio .riga { display: block; width: 100%; margin: 2px 0 8px; }
   .metodo { background: #f3f7ff; border-left: 5px solid var(--accento); border-radius: 6px; padding: 8px 12px; margin: 8px 0; }
   .soluzione { display: none; background: var(--verde); border-radius: 6px; padding: 8px 12px; margin-top: 8px; font-family: var(--font-mano); font-size: 1.15rem; }
   .soluzione.aperta { display: block; }
@@ -380,10 +386,26 @@ if (L.audio === false) { document.getElementById('ascolta-tutto').remove(); docu
 
 /* ── Esercizi (nostri, non quelli del libro) ── */
 const ESERCIZI = L.esercizi || []
+// i ______ diventano caselle dove scrivere; le righe "a) …" senza buco hanno una riga sotto.
+// Le risposte restano in studio-app:esercizi:<id> (sync.js le porta sul database).
+const CHIAVE_RISPOSTE = 'studio-app:esercizi:' + ID
+function conCaselle(testo, i) {
+  let n = 0
+  const casella = (cls) => `<input class="${cls}" data-campo="${i}-${n++}" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Risposta">`
+  const righe = testo.split(/<br\s*\/?>/i)
+  return righe.map((r, k) => {
+    const fine = k < righe.length - 1 ? '<br>' : ''
+    if (/_{3,}/.test(r)) return r.replace(/_{3,}/g, () => casella('buco')) + fine
+    const parole = r.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim()
+    // una voce per riga ("a) …", "1) …"); se nella riga ce ne sono altre (b) c) …) si lascia stare
+    if (/^(\(?[a-z]\)|\d+[).])\s/i.test(parole) && !/\s\(?[b-z]\)\s/.test(parole.slice(2))) return r + casella('riga')
+    return r + fine
+  }).join('')
+}
 document.getElementById('esercizi').innerHTML = ESERCIZI.map((e, i) => `
   <div class="esercizio">
     <h3>${i + 1}. ${e.titolo}</h3>
-    <p>${e.testo}</p>
+    <p>${conCaselle(e.testo, i)}</p>
     <div class="metodo">💡 <b>Come si fa:</b> ${e.metodo}</div>
     <button class="bottone bianco" data-sol="${i}">Prova da solo, poi controlla ✔</button>
     <div class="soluzione" id="sol-${i}">${e.soluzione}</div>
@@ -394,6 +416,31 @@ document.getElementById('esercizi').addEventListener('click', (ev) => {
   s.classList.toggle('aperta')
   b.textContent = s.classList.contains('aperta') ? 'Nascondi la soluzione' : 'Prova da solo, poi controlla ✔'
 })
+function leggiRisposte() { try { return JSON.parse(localStorage.getItem(CHIAVE_RISPOSTE) ?? '{}') || {} } catch { return {} } }
+function rimettiRisposte() {
+  const r = leggiRisposte()
+  document.querySelectorAll('#esercizi [data-campo]').forEach((c) => { if (c !== document.activeElement) c.value = r[c.dataset.campo] ?? '' })
+}
+let salva = 0
+document.getElementById('esercizi').addEventListener('input', (ev) => {
+  const c = ev.target.closest('[data-campo]'); if (!c) return
+  clearTimeout(salva)
+  salva = setTimeout(() => {
+    const r = leggiRisposte()
+    if (c.value.trim()) r[c.dataset.campo] = c.value; else delete r[c.dataset.campo]
+    try { localStorage.setItem(CHIAVE_RISPOSTE, JSON.stringify(r)) } catch {}
+  }, 400)
+})
+// Invio passa alla casella dopo
+document.getElementById('esercizi').addEventListener('keydown', (ev) => {
+  if (ev.key !== 'Enter' || !ev.target.matches('[data-campo]')) return
+  ev.preventDefault()
+  const tutte = [...document.querySelectorAll('#esercizi [data-campo]')]
+  const dopo = tutte[tutte.indexOf(ev.target) + 1]
+  if (dopo) dopo.focus(); else ev.target.blur()
+})
+rimettiRisposte()
+addEventListener('studio-sync:dati', rimettiRisposte)
 
 let catena = false
 async function ascoltaScheda(id, bottone) {
