@@ -81,6 +81,24 @@ export const LEZIONI: Lezione[] = [
     domande: 12,
     sezioni: ['scheda', 'esercizi', 'quiz'],
   },
+  {
+    id: 'scienze-calore',
+    materia: 'scienze',
+    titolo: 'Il calore e come si propaga',
+    fonte: 'Che meraviglia la scienza · A3 lezione 2 · pag. A70-A74',
+    perIl: ['2026-11-17'],
+    domande: 14,
+    sezioni: ['scheda', 'esercizi', 'quiz', 'interroga'],
+  },
+  {
+    id: 'inglese-units-1-2',
+    materia: 'inglese',
+    titolo: 'Units 1-2: ripasso per la verifica',
+    fonte: 'This is me! 1 · units 1-2 · pag. 25-52, Workbook 172-175',
+    perIl: ['2026-11-17'],
+    domande: 20,
+    sezioni: ['scheda', 'esercizi', 'quiz'],
+  },
 ]
 
 /** Indirizzo completo: con la sola barra finale il server di Vite rimanda all'app. */

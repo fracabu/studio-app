@@ -298,18 +298,26 @@ function zitto() {
   try { speechSynthesis.cancel() } catch {}
   const f = fineAudio; fineAudio = null; if (f) f(false)
 }
-/** Suona un file; se non c'è, legge il testo. Risolve true se è arrivato in fondo. */
+/** Avviso al posto della voce del browser, quando l'MP3 della lezione non è ancora pronto. */
+function avvisoAudio() {
+  let a = document.getElementById('avviso-audio')
+  if (!a) {
+    a = document.createElement('div'); a.id = 'avviso-audio'; a.setAttribute('role', 'status')
+    a.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:50;background:var(--inchiostro);color:#fff;padding:10px 16px;border-radius:10px;font-weight:700;box-shadow:0 4px 0 rgba(0,0,0,.25);max-width:90vw;text-align:center'
+    document.body.appendChild(a)
+  }
+  a.textContent = '🔇 Audio in preparazione: riprova tra poco'
+  a.hidden = false
+  clearTimeout(avvisoAudio.t); avvisoAudio.t = setTimeout(() => { a.hidden = true }, 3000)
+}
+/** Suona un file; se non c'è, mostra l'avviso (mai la voce del browser). Risolve true se è arrivato in fondo. */
 function suona(file, testo) {
   zitto()
   return new Promise((ok) => {
     fineAudio = ok
     const chiudi = (v) => { if (fineAudio === ok) { fineAudio = null; ok(v) } }
-    const browser = () => {
-      if (!testo || !('speechSynthesis' in window)) return chiudi(true)
-      const u = new SpeechSynthesisUtterance(testo); u.lang = 'it-IT'; u.rate = 1
-      u.onend = () => chiudi(true); u.onerror = () => chiudi(false)
-      speechSynthesis.speak(u)
-    }
+    // niente voce del browser (robotica): se l'MP3 non c'è ancora, solo un avviso
+    const browser = () => { avvisoAudio(); chiudi(false) }
     lettore.src = 'audio/' + file
     lettore.onended = () => chiudi(true)
     lettore.onerror = browser
@@ -423,26 +431,20 @@ filtro.addEventListener('click', (ev) => {
 })
 
 /* ── Pronuncia: le parole marcate con lang="es" (o un'altra lingua) si ascoltano con un tocco.
-   MP3 in audio/<lingua>-<firma>.mp3 (scripts/lezione-audio.mjs, stessa firma); se manca, la voce del browser. ── */
+   MP3 in audio/<lingua>-<firma>.mp3 (scripts/lezione-audio.mjs, stessa firma); se manca, solo un avviso: mai la voce del browser. ── */
 function firmaTesto(t) {
   t = t.replace(/\s+/g, ' ').trim()
   let h = 0x811c9dc5
   for (const ch of t) { h ^= ch.codePointAt(0); h = Math.imul(h, 0x01000193) >>> 0 }
   return h.toString(16).padStart(8, '0')
 }
-const VOCI_BROWSER = { es: 'es-ES', en: 'en-GB', fr: 'fr-FR', de: 'de-DE' }
 function pronuncia(el) {
   catena = false; zitto()
   document.querySelectorAll('[lang].suona').forEach((x) => x.classList.remove('suona'))
   const testo = el.textContent.replace(/\s+/g, ' ').trim()
   el.classList.add('suona')
   const fine = () => el.classList.remove('suona')
-  const browser = () => {
-    if (!('speechSynthesis' in window)) return fine()
-    const u = new SpeechSynthesisUtterance(testo); u.lang = VOCI_BROWSER[el.lang] || el.lang; u.rate = 0.9
-    u.onend = fine; u.onerror = fine
-    speechSynthesis.speak(u)
-  }
+  const browser = () => { avvisoAudio(); fine() }
   lettore.src = `audio/${el.lang}-${firmaTesto(testo)}.mp3`
   lettore.onended = fine
   lettore.onerror = browser

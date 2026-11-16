@@ -54,6 +54,8 @@ Materie del prossimo giorno di scuola più le cose fisse in `src/data/zaino.ts`:
 - Le stelle scrivono direttamente in `studio-app:premi` (stessi id evento di `premi.ts`: `video:<lezione>` 5, `quiz:<lezione>:<n>` 1, `quiz:<lezione>:perfetto` 5).
 - Prima lezione: `scienze-temperatura` (A3 lezione 1, pp. 64–68). Video fatto con js-video in `C:\Users\user\claude-video-gen\videos\temperatura-prima-media` (voce di Sbrigo, stile app, zoom/puntatore/sottolineature) e copiato come `video.mp4`.
 - Contenuti dal wiki `prima-media-llm-wiki` (capitolo + concetti); esercizi **nostri**, mai le soluzioni di quelli del libro.
+- Audio: `node scripts/lezione-audio.mjs <id>` (Isabella per l'italiano, Elvira per `lang="es"`, Sonia en-GB per `lang="en"`), poi `node scripts/controlla-audio.mjs <id>` deve dare 0 mancanti. La pagina comune **non usa mai la voce del browser**: se un MP3 manca mostra "Audio in preparazione".
+- Gli screen del registro si leggono solo da localhost:5190 (online l'app lo dice).
 
 ## Sbrigo, il presentatore
 Spiritello 3D **originale** (spirito da commedia gotica alla Beetlejuice, aspetto nostro: pelle lavanda, cresta viola-azzurra, giacca a quadri arancio/viola, scarpe da basket, pallone). Sta su ogni vista, la presenta in modo irriverente e spinge a fare i compiti "per andare a basket".

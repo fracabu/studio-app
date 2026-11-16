@@ -47,6 +47,7 @@ export function perLaVoce(html) {
  * italiano con Isabella, il resto con la voce della lingua, pezzi uniti con ffmpeg. */
 const VOCI_LINGUA = {
   es: { voce: 'es-ES-ElviraNeural', rate: '-10%' },
+  en: { voce: 'en-GB-SoniaNeural', rate: '-10%' },
 }
 
 /** Stessa funzione di index.html: FNV-1a sul testo normalizzato. */
@@ -95,7 +96,7 @@ function tts(out, { voce, rate, testo }) {
   const TENTATIVI = 6
   for (let tentativo = 1; tentativo <= TENTATIVI; tentativo++) {
     // python -m edge_tts e non edge-tts.exe: dal 15/11 Windows (controllo delle applicazioni) blocca l'eseguibile
-    const r = spawnSync('python', ['-m', 'edge_tts', '--voice', voce, `--rate=${rate}`, '--text', testo, '--write-media', out], { encoding: 'utf8', timeout: 120_000 })
+    const r = spawnSync('python', ['-m', 'edge_tts', '--voice', voce, `--rate=${rate}`, `--text=${testo}`, '--write-media', out], { encoding: 'utf8', timeout: 120_000 })
     if (r.status === 0) break
     const motivo = r.error ? r.error.message : String(r.stderr).trim().split('\n').pop()
     console.error(`  ${path.basename(out)}: tentativo ${tentativo} fallito ${motivo.slice(0, 160)}`)

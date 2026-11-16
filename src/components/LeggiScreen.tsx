@@ -138,7 +138,10 @@ export function LeggiScreen({ immagini, oggi, onChiudi, onSalvato }: Props) {
           body: JSON.stringify(corpo),
           signal: interrompi.signal,
         })
-        const dati = await r.json()
+        // online (Vercel) /api/leggi-screen non esiste e torna una pagina 404 in HTML, non JSON
+        const dati = await r.json().catch(() => {
+          throw new Error('Gli screen si leggono solo dall\'app sul PC di casa (localhost:5190), non dal sito online.')
+        })
         if (!r.ok) throw new Error(dati.errore ?? `Errore ${r.status}`)
         if (annullato) return
         setLetti(dati.compiti as Letto[])
