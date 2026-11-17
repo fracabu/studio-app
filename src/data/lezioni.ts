@@ -108,6 +108,15 @@ export const LEZIONI: Lezione[] = [
     domande: 22,
     sezioni: ['scheda', 'esercizi', 'quiz'],
   },
+  {
+    id: 'musica-strumenti',
+    materia: 'musica',
+    titolo: 'Strumenti, voci e formazioni',
+    fonte: "D'amore e d'Accordi · Volume A · pag. 17-32",
+    perIl: ['2026-11-18'],
+    domande: 24,
+    sezioni: ['scheda', 'esercizi', 'quiz', 'interroga'],
+  },
 ]
 
 /** Indirizzo completo: con la sola barra finale il server di Vite rimanda all'app. */
