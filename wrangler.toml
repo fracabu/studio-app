@@ -1,0 +1,8 @@
+# Cloudflare Pages: https://codecraft-prima-media.pages.dev
+# Pubblicazione dal PC: npm run deploy (build, poi via i video, poi wrangler pages deploy).
+# Le funzioni stanno in functions/ e richiamano quelle di api/. Variabili segrete del progetto
+# (non qui): DATABASE_URL e SESSION_SECRET, messe con scripts/cloudflare-segreti.mjs.
+name = "codecraft-prima-media"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-11-01"
+compatibility_flags = ["nodejs_compat"]

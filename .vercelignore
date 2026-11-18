@@ -3,3 +3,5 @@ dati/
 node_modules/
 dist/
 public/lezioni/**/*.mp4
+functions/
+wrangler.toml
