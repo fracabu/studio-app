@@ -50,7 +50,7 @@ export const LEZIONI: Lezione[] = [
     materia: 'matematica',
     titolo: 'Le potenze',
     fonte: 'Tutto chiaro! Aritmetica 1 · U3 · pag. 200-205 e 223-231',
-    perIl: ['2026-11-12', '2026-11-16'],
+    perIl: ['2026-11-12', '2026-11-16', '2026-11-19'],
     domande: 16,
     sezioni: ['video', 'scheda', 'esercizi', 'quiz'],
   },
@@ -86,7 +86,7 @@ export const LEZIONI: Lezione[] = [
     materia: 'scienze',
     titolo: 'Il calore e come si propaga',
     fonte: 'Che meraviglia la scienza · A3 lezione 2 · pag. A70-A74',
-    perIl: ['2026-11-17'],
+    perIl: ['2026-11-17', '2026-11-19'],
     domande: 14,
     sezioni: ['scheda', 'esercizi', 'quiz', 'interroga'],
   },
@@ -116,6 +116,15 @@ export const LEZIONI: Lezione[] = [
     perIl: ['2026-11-18'],
     domande: 24,
     sezioni: ['scheda', 'esercizi', 'quiz', 'interroga'],
+  },
+  {
+    id: 'inglese-family-friends',
+    materia: 'inglese',
+    titolo: 'Unit 3: family, pets e have got',
+    fonte: 'This is me! 1 · unit 3 · pag. 57-63',
+    perIl: ['2026-11-19'],
+    domande: 20,
+    sezioni: ['scheda', 'esercizi', 'quiz'],
   },
 ]
 
