@@ -126,6 +126,33 @@ export const LEZIONI: Lezione[] = [
     domande: 20,
     sezioni: ['scheda', 'esercizi', 'quiz'],
   },
+  {
+    id: 'storia-carlo-magno',
+    materia: 'storia',
+    titolo: 'Dai Franchi a Carlo Magno',
+    fonte: 'Il nuovo Tutto è storia 1 · cap. 2 lezioni 1-2 · pag. 55-63',
+    perIl: ['2026-11-20'],
+    domande: 18,
+    sezioni: ['scheda', 'esercizi', 'quiz', 'interroga'],
+  },
+  {
+    id: 'storia-curtis-longobardi',
+    materia: 'storia',
+    titolo: 'La curtis e i Longobardi',
+    fonte: 'Il nuovo Tutto è storia 1 · cap. 1 · pag. 39-52',
+    perIl: ['2026-11-13'],
+    domande: 20,
+    sezioni: ['scheda', 'esercizi', 'quiz', 'interroga'],
+  },
+  {
+    id: 'storia-primo-medioevo',
+    materia: 'storia',
+    titolo: 'Il primo Medioevo in quattro temi',
+    fonte: 'Il nuovo Tutto è storia 1 · quattro temi · pag. 23-37',
+    perIl: [],
+    domande: 20,
+    sezioni: ['scheda', 'esercizi', 'quiz', 'interroga'],
+  },
 ]
 
 /** Indirizzo completo: con la sola barra finale il server di Vite rimanda all'app. */

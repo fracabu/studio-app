@@ -119,6 +119,18 @@ export const LIBRI: Libro[] = [
     cartella: 'inglese-this-is-me',
   },
   {
+    // Non è nella foto dell'elenco (tagliata dopo Spagnolo): titolo ed editore dati dall'utente il 19/11,
+    // autori dalla copertina dell'ebook. ISBN da leggere sul libro.
+    materia: 'storia',
+    titolo: 'Il nuovo Tutto è storia',
+    dettagli: 'Nuova periodizzazione, volume 1: dal VI secolo alla metà del Seicento + Cittadinanza + Easy 1 + libro digitale',
+    autori: 'Marina Morpurgo, Alessandro Marzo Magno, Dino Carpanetto',
+    editore: 'Edizioni Scolastiche Bruno Mondadori',
+    isbn: '',
+    volume: '1',
+    cartella: 'storia-il-nuovo-tutto-e-storia',
+  },
+  {
     materia: 'spagnolo',
     titolo: '¡Venga vamos!',
     dettagli: 'Edición verde compacta + Ebook / Libro del alumno y cuaderno (riga tagliata nella foto)',
