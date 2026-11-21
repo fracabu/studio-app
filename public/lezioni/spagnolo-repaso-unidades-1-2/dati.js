@@ -1,4 +1,7 @@
-/* Ripasso delle unità 1 e 2 di spagnolo, per i compiti del 20/11 (pag. 65, 66, 67).
+/* Ripasso delle unità 1 e 2 di spagnolo, per i compiti del 20/11 (pag. 65, 66, 67) e del 23/11 (pag. 56, 57).
+ * Dal 21/11 anche pag. 56-57 "Unidad en mapas" (mappe da completare: la familia, los países y las
+ * nacionalidades per continente, los interrogativos, los demostrativos, los adjetivos posesivos, più
+ * l'esercizio 2 "Elige la opción correcta"): scheda 10 ed esercizi 11-14, con un albero e frasi nostri.
  * Fonte: ¡Venga, vamos! Edición verde 1 (DeA Scuola): pag. 65 ¿Sabes evaluarte? (test di 20 domande),
  * pag. 66 Repasamos juntos 1-2 (giorni, mesi, stagioni, famiglia, nazionalità, articoli, maschile e
  * femminile, plurale, dimostrativi, ser e tener, presente, possessivi), pag. 67 Ampliamos juntos
@@ -15,7 +18,7 @@ window.LEZIONE = {
   materia: 'Spagnolo',
   titolo: 'Repaso: unidades 1 y 2',
   argomento: 'il ripasso delle unità 1 e 2: calendario, articoli, maschile e femminile, plurale, verbi, domande',
-  pagine: '65–67',
+  pagine: '56–57, 65–67',
   sezioni: ['scheda', 'esercizi', 'quiz'],
 
   schede: [
@@ -135,6 +138,28 @@ window.LEZIONE = {
 <p class="nota"><span lang="es">El nieto</span> è il nipote del nonno; <span lang="es">el sobrino</span> è il nipote dello zio. In italiano è la stessa parola, in spagnolo no.</p>
 <p>Per leggere un testo e rispondere: trova la parola chiave della domanda (<span lang="es">cuándo, cuál, cuántos</span>), cercala nel testo e rispondi con una frase intera, con lo stesso verbo della domanda.</p>`,
     },
+    {
+      id: 's10', titolo: 'Le mappe dell\'unità 2', pag: '56-57',
+      html: `<p>Alle pagine 56 e 57 l'unità 2 diventa cinque mappe da completare. Ecco come si fa ognuna.</p>
+<p><b>1. La famiglia.</b> L'albero è visto da <span lang="es">Yo</span>: per ogni casella chiediti «chi è per me?». Le parole sono <span lang="es">padre, madre, hermana, abuelo, abuela, tío, tía, primo</span>. I fratelli di papà e mamma sono <span lang="es">tíos</span>, i loro figli <span lang="es">primos</span>.</p>
+<p><b>2. Paesi e nazionalità.</b> Nella colonna di ogni continente scrivi il paese e la nazionalità, al maschile e al femminile:</p>
+<table>
+<tr><td><b>América</b></td><td><span lang="es">México: mexicano, mexicana · Argentina: argentino, argentina · Canadá: canadiense</span></td></tr>
+<tr><td><b>Oceanía</b></td><td><span lang="es">Australia: australiano, australiana · Nueva Zelanda: neozelandés, neozelandesa</span></td></tr>
+<tr><td><b>Asia</b></td><td><span lang="es">China: chino, china · Japón: japonés, japonesa</span></td></tr>
+<tr><td><b>Europa</b></td><td><span lang="es">Francia: francés, francesa · Alemania: alemán, alemana · Portugal: portugués, portuguesa</span></td></tr>
+<tr><td><b>África</b></td><td><span lang="es">Marruecos: marroquí · Egipto: egipcio, egipcia</span></td></tr>
+</table>
+<p><b>3. Gli interrogativi.</b> La mappa li ordina per quello che chiedono: luogo, tempo, persona (una o più), modo, quantità, causa, cosa. Sono quelli della scheda 8: per ogni riga guarda la risposta che ti aspetti.</p>
+<p><b>4. I dimostrativi.</b> Quattro forme per ogni distanza:</p>
+<table>
+<tr><td>qui, vicino a me</td><td><span lang="es">este, esta, estos, estas</span></td></tr>
+<tr><td>lì, vicino a te</td><td><span lang="es">ese, esa, esos, esas</span></td></tr>
+<tr><td>là, lontano da tutti e due</td><td><span lang="es">aquel, aquella, aquellos, aquellas</span></td></tr>
+</table>
+<p><b>5. I possessivi.</b> Una cosa posseduta: <span lang="es">mi, tu, su, nuestro, nuestra, vuestro, vuestra, su</span>. Più cose: <span lang="es">mis, tus, sus, nuestros, nuestras, vuestros, vuestras, sus</span>.</p>
+<div class="attento">⚠️ Davanti al nome il possessivo <b>non vuole l'articolo</b>: <span lang="es">mi hermano</span>, mai «el mi hermano». E <span lang="es">tu</span> possessivo non ha l'accento; <span lang="es">tú</span> con l'accento è il pronome «tu».</div>`,
+    },
   ],
 
   esercizi: [
@@ -198,6 +223,30 @@ window.LEZIONE = {
       metodo: `Una frase per domanda. Controlla: tener per età e parenti, ser per nazionalità e lavoro, possessivi senza articolo (<i>su padre</i>), mesi e nazionalità con la minuscola.`,
       soluzione: `Un esempio, non l'unica risposta giusta:<br><span lang="es">Esta es la familia de mi amiga Carla.</span> <span lang="es">Carla tiene once años y es italiana.</span> <span lang="es">Su padre se llama Marco y es profesor; su madre se llama Elena y es médica.</span> <span lang="es">Carla tiene un hermano mayor, Luca, y una hermana pequeña, Sofía.</span> <span lang="es">Sus abuelos viven en Nápoles.</span> <span lang="es">Los domingos toda la familia come en casa de los abuelos.</span> <span lang="es">Su mes preferido es julio, porque no hay colegio.</span>`,
     },
+    {
+      titolo: 'La familia de Sbrigo',
+      testo: `Leggi com'è fatta la famiglia di Sbrigo e completa le frasi con il nome della parentela.<br><span lang="es">El abuelo Tito y la abuela Luna tienen dos hijos: Rayo y Brina.</span> <span lang="es">Rayo está casado con Lila y tienen dos hijos: Sbrigo y Nebbia.</span> <span lang="es">Brina está casada con Trueno y tienen un hijo, Tuono.</span><br><br>a) Tito es ______ de Sbrigo.<br>b) Luna es ______ de Sbrigo.<br>c) Rayo es ______ de Sbrigo.<br>d) Lila es ______ de Sbrigo.<br>e) Nebbia es ______ de Sbrigo.<br>f) Brina es ______ de Sbrigo.<br>g) Trueno es ______ de Sbrigo.<br>h) Tuono es ______ de Sbrigo.`,
+      metodo: `Scheda 10: disegna l'albero sul quaderno a tre piani (nonni, genitori e zii, figli e cugini), poi guarda ogni persona dal posto di Sbrigo. Maschile e femminile cambiano solo la vocale: tío, tía.`,
+      soluzione: `a) <span lang="es">el abuelo</span> · b) <span lang="es">la abuela</span> · c) <span lang="es">el padre</span> · d) <span lang="es">la madre</span> · e) <span lang="es">la hermana</span> · f) <span lang="es">la tía</span> · g) <span lang="es">el tío</span> · h) <span lang="es">el primo</span>`,
+    },
+    {
+      titolo: 'Paesi, continenti e nazionalità',
+      testo: `Per ogni paese scrivi il continente e la nazionalità, al maschile e al femminile.<br>a) <span lang="es">México</span><br>b) <span lang="es">Japón</span><br>c) <span lang="es">Australia</span><br>d) <span lang="es">Francia</span><br>e) <span lang="es">Marruecos</span><br>f) <span lang="es">Argentina</span><br>g) <span lang="es">Alemania</span><br>h) <span lang="es">China</span>`,
+      metodo: `Scheda 10, mappa 2. Le nazionalità in -o fanno il femminile in -a; quelle in consonante aggiungono -a e perdono l'accento (japonés, japonesa); quelle in -e o in -í restano uguali.`,
+      soluzione: `a) <span lang="es">América: mexicano, mexicana</span><br>b) <span lang="es">Asia: japonés, japonesa</span><br>c) <span lang="es">Oceanía: australiano, australiana</span><br>d) <span lang="es">Europa: francés, francesa</span><br>e) <span lang="es">África: marroquí</span><br>f) <span lang="es">América: argentino, argentina</span><br>g) <span lang="es">Europa: alemán, alemana</span><br>h) <span lang="es">Asia: chino, china</span>`,
+    },
+    {
+      titolo: 'Che cosa chiedi?',
+      testo: `Completa con l'interrogativo giusto. Tra parentesi c'è che cosa chiedi.<br>a) ¿______ vive tu abuela? (luogo)<br>b) ¿______ empieza el partido? (tempo)<br>c) ¿______ es esa chica? (una persona)<br>d) ¿______ son esos niños? (più persone)<br>e) ¿______ se dice «ciao» en español? (modo)<br>f) ¿______ hermanas tienes? (quantità)<br>g) ¿______ estudias español? (causa)<br>h) ¿______ comes hoy? (cosa)`,
+      metodo: `Schede 8 e 10: ogni categoria ha la sua parola. Con la quantità guarda il nome dopo, per accordare (hermanas è femminile plurale). Ricorda accento e punto interrogativo rovesciato.`,
+      soluzione: `a) <span lang="es">Dónde</span> · b) <span lang="es">Cuándo</span> · c) <span lang="es">Quién</span> · d) <span lang="es">Quiénes</span> · e) <span lang="es">Cómo</span> · f) <span lang="es">Cuántas</span> · g) <span lang="es">Por qué</span> · h) <span lang="es">Qué</span>`,
+    },
+    {
+      titolo: 'Scegli la forma giusta',
+      testo: `a) ¿Es (tu / la tu) bicicleta? Sí, es (mi / mía) bicicleta.<br>b) (Este / Esta) libro de aquí es de Ana.<br>c) ¿(Quién / Quiénes) son aquellos chicos de allí?<br>d) (Aquellas / Aquellos) casas de allí son de mis tíos.<br>e) (Nuestro / Nuestra) abuela es mexicana.<br>f) Mis primos son (franceses / francés).<br>g) ¿De dónde es (vuestros / vuestro) profesor?`,
+      metodo: `Per ogni scelta guarda il nome a cui si riferisce: maschile o femminile, uno o tanti. Per i dimostrativi guarda anche la distanza (aquí, ahí, allí). Il possessivo davanti al nome è senza articolo.`,
+      soluzione: `a) <span lang="es">¿Es tu bicicleta? Sí, es mi bicicleta.</span><br>b) <span lang="es">Este libro de aquí es de Ana.</span><br>c) <span lang="es">¿Quiénes son aquellos chicos de allí?</span><br>d) <span lang="es">Aquellas casas de allí son de mis tíos.</span><br>e) <span lang="es">Nuestra abuela es mexicana.</span><br>f) <span lang="es">Mis primos son franceses.</span><br>g) <span lang="es">¿De dónde es vuestro profesor?</span>`,
+    },
   ],
 
   quiz: [
@@ -223,6 +272,10 @@ window.LEZIONE = {
     { d: '¿___ estudias español? — Porque me gusta.', r: ['Por qué', 'Porque', 'Qué', 'Cuál'], s: 'La domanda vuole por qué, staccato e con l\'accento; la risposta porque.' },
     { d: '___ montañas de allí son muy altas.', r: ['Aquellas', 'Esas', 'Estas', 'Aquellos'], s: 'Allí, lontano, vuole aquel; montañas è femminile plurale: aquellas.' },
     { d: '___ abuela es española. (di noi)', r: ['Nuestra', 'Nuestro', 'La nuestra', 'Nuestras'], s: 'Abuela è femminile singolare: nuestra, senza articolo.' },
+    { d: 'La madre di mio padre è mia…', r: ['abuela', 'tía', 'madre', 'prima'], s: 'La mamma del papà è la nonna: abuela.' },
+    { d: 'Una ragazza che viene dalla Francia è…', r: ['francesa', 'francés', 'franceses', 'francia'], s: 'Francés al femminile aggiunge -a e perde l\'accento: francesa.' },
+    { d: '«Quelle case laggiù» si dice…', r: ['aquellas casas', 'esas casas', 'estas casas', 'aquellos casas'], s: 'Lontano da tutti e due: aquel, aquella, aquellos, aquellas. Casas è femminile plurale.' },
+    { d: '«I nostri cugini» si dice…', r: ['nuestros primos', 'los nuestros primos', 'nuestro primos', 'nuestras primos'], s: 'Possessivo plurale maschile, senza articolo.' },
   ],
 
   /* niente interrogazione a voce: il riconoscimento vocale è in italiano */

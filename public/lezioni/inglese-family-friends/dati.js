@@ -4,6 +4,10 @@
  * affermativo, negativo, interrogativo e risposte brevi, plurali irregolari (62-63).
  * Nel lettore HUB Young: page = pagina stampata + 4.
  * Compito per il 19/11: "Prepare a family tree on ex.book" (scheda 2 ed esercizio 9).
+ * Compito per il 24/11: "Have got aff and neg. Do ex pages 62, 179. Write 5 sentences with have got aff
+ * and neg". Pag. 179 è il Workbook della Unit 3 (have got negativo, domande e risposte brevi; esercizi
+ * 12-16: scelta, negativa contratta, frasi con ✓ e ✗, Have/Has… got, abbinare le risposte brevi):
+ * esercizi 11-13 nostri, sullo stesso tipo, e quiz 21-24.
  * Regole riscritte con parole nostre; esercizi e quiz nostri, con frasi diverse da quelle del libro
  * (mai le soluzioni degli esercizi delle pagine 58-63). I testi degli esercizi 3 e 9 sono di Sbrigo.
  * L'inglese è marcato <span lang="en">…</span>: dentro gli span niente entità HTML né altri tag,
@@ -198,6 +202,24 @@ window.LEZIONE = {
       metodo: `Avere = <b>have got</b>, con has per lui, lei, esso. Genitori = parents. Il figlio di Marco = Marco's son. L'aggettivo va prima del nome.`,
       soluzione: `a) <span lang="en">I've got two cousins and an aunt.</span><br>b) <span lang="en">My sister hasn't got a phone.</span><br>c) <span lang="en">Have you got a pet? Yes, I have.</span><br>d) <span lang="en">My parents have got a small house.</span><br>e) <span lang="en">Luca is Marco's son.</span><br>f) <span lang="en">My best friend has got three rabbits.</span>`,
     },
+    {
+      titolo: 'Sì o no? Frasi con ✓ e ✗',
+      testo: `Scrivi la frase con <b>have got</b>: ✓ = affermativa, ✗ = negativa. Usa la forma contratta.<br>a) Sbrigo / a red cap (✗)<br>b) My cousins / a swimming pool (✓)<br>c) I / a sister (✗)<br>d) Our teacher / a funny dog (✓)<br>e) You and Marco / football boots (✗)<br>f) The school / a big gym (✓)`,
+      metodo: `Prima trova il soggetto: he, she, it o un nome singolare → has; tutti gli altri → have (schede 4 e 5). Poi contrai: 've, 's, haven't, hasn't. Got resta sempre.`,
+      soluzione: `a) <span lang="en">Sbrigo hasn't got a red cap.</span><br>b) <span lang="en">My cousins have got a swimming pool.</span><br>c) <span lang="en">I haven't got a sister.</span><br>d) <span lang="en">Our teacher's got a funny dog.</span><br>e) <span lang="en">You and Marco haven't got football boots.</span><br>f) <span lang="en">The school's got a big gym.</span>`,
+    },
+    {
+      titolo: 'Have o Has? E la risposta breve',
+      testo: `Completa la domanda con <b>Have… got</b> o <b>Has… got</b>, poi scegli la risposta breve giusta tra quelle in fondo.<br>1) ______ your brother ______ a tablet?<br>2) ______ we ______ maths today?<br>3) ______ the cat ______ blue eyes?<br>4) ______ Sara and Leo ______ a dog?<br>5) ______ you ______ my pen? (parli a un amico)<br><br>Risposte: Yes, it has. · No, they haven't. · Yes, he has. · No, I haven't. · Yes, we have.`,
+      metodo: `Scheda 6: Have o Has va <b>prima</b> del soggetto, got <b>dopo</b>. Per la risposta breve trasforma il soggetto in pronome (your brother → he, the cat → it, Sara and Leo → they) e non mettere got.`,
+      soluzione: `1) <span lang="en">Has your brother got a tablet? Yes, he has.</span><br>2) <span lang="en">Have we got maths today? Yes, we have.</span><br>3) <span lang="en">Has the cat got blue eyes? Yes, it has.</span><br>4) <span lang="en">Have Sara and Leo got a dog? No, they haven't.</span><br>5) <span lang="en">Have you got my pen? No, I haven't.</span>`,
+    },
+    {
+      titolo: 'Le tue 5 frasi (compito per il 24/11)',
+      testo: `Scrivi sul quaderno <b>5 frasi</b> su di te, sulla tua famiglia o sui tuoi amici con <b>have got</b>:<br>• almeno <b>2 affermative</b> (I've got…, My mum has got…)<br>• almeno <b>2 negative</b> (I haven't got…, My friend hasn't got…)<br>• almeno una frase con <b>has</b> e una con <b>have</b>.`,
+      metodo: `Pensa a cose vere: animali, fratelli, oggetti (a bike, a phone, a skateboard), cose della scuola. Rileggi ogni frase e controlla tre cose: has con he, she, it e i nomi singolari; got c'è sempre; nella negativa n't va attaccato a have o has.`,
+      soluzione: `Un esempio, le frasi di Sbrigo (le tue saranno diverse):<br><span lang="en">I've got a basketball.</span><br><span lang="en">My sister has got a purple bike.</span><br><span lang="en">I haven't got a phone.</span><br><span lang="en">My grandpa hasn't got a car.</span><br><span lang="en">My cousins have got two cats.</span>`,
+    },
   ],
 
   quiz: [
@@ -221,6 +243,10 @@ window.LEZIONE = {
     { d: `Il plurale di <i>tooth</i> è…`, r: [`teeth`, `tooths`, `toothes`, `teeths`], s: `La doppia o diventa doppia e: teeth.` },
     { d: `Six ___ are at the party.`, r: [`people`, `persons`, `peoples`, `person`], s: `Il plurale di person è people, già plurale.` },
     { d: `"Non è colpa mia" si dice…`, r: [`It's not my fault.`, `It's no big deal.`, `Let's meet up.`, `I'm busy.`], s: `It's not my fault, la frase di Dan nel dialogo.` },
+    { d: `Lily ___ got green eyes. (negativa)`, r: [`hasn't`, `haven't`, `isn't`, `doesn't`], s: `Lily è she: hasn't got.` },
+    { d: `___ your parents got a car?`, r: [`Have`, `Has`, `Are`, `Do`], s: `Your parents sono they: Have… got?` },
+    { d: `Has Tom got a sister? — Yes, ___`, r: [`he has.`, `he's got.`, `he has got.`, `he have.`], s: `Nella risposta breve niente got e niente contrazione: Yes, he has.` },
+    { d: `La forma intera di <i>We haven't got</i> è…`, r: [`We have not got`, `We has not got`, `We have got not`, `We not have got`], s: `Not va tra have e got.` },
   ],
 
   /* niente interrogazione a voce: il riconoscimento vocale è in italiano */
