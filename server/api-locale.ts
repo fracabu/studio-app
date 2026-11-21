@@ -5,7 +5,7 @@
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { Plugin } from 'vite'
 
-const FUNZIONI = new Set(['login', 'logout', 'io', 'progressi', 'profilo', 'password'])
+const FUNZIONI = new Set(['login', 'logout', 'io', 'progressi', 'compiti', 'profilo', 'password'])
 
 export function apiLocale(): Plugin {
   return {

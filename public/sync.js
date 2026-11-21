@@ -126,9 +126,11 @@
       // primo login da questo browser, che aveva già dati suoi: li manda tutti (vincono loro)
       segnaCambiate([...cambiate(), ...chiaviApp()])
     }
-    if (cambiate().length) { await manda(); return 'ok' } // manda() poi allinea col server
-    if (aggiornato) applica(dati, aggiornato)
-    else setOrig.call(ls, BASE, '') // utente nuovo, ancora niente sul server
+    if (cambiate().length) await manda() // manda() poi allinea col server
+    else if (aggiornato) applica(dati, aggiornato)
+    else { setOrig.call(ls, BASE, ''); dispatchEvent(new Event('studio-sync:dati')) } // utente nuovo, niente sul server
+    // c'è qualcuno collegato: il diario della classe (src/lib/compiti.ts) si allinea col server
+    dispatchEvent(new Event('studio-sync:collegato'))
     return 'ok'
   }
 

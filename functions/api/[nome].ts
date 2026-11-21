@@ -4,6 +4,7 @@
 // Le variabili del progetto Cloudflare (DATABASE_URL, SESSION_SECRET) arrivano in `env`: _lib.ts le
 // legge da process.env, quindi qui si copiano lì prima di chiamare la funzione.
 
+import * as compiti from '../../api/compiti.js'
 import * as io from '../../api/io.js'
 import * as login from '../../api/login.js'
 import * as logout from '../../api/logout.js'
@@ -12,7 +13,7 @@ import * as profilo from '../../api/profilo.js'
 import * as progressi from '../../api/progressi.js'
 
 type Gestore = (req: Request) => Promise<Response>
-const FUNZIONI: Record<string, Record<string, Gestore | undefined>> = { io, login, logout, password, profilo, progressi }
+const FUNZIONI: Record<string, Record<string, Gestore | undefined>> = { compiti, io, login, logout, password, profilo, progressi }
 
 type Contesto = { request: Request; params: { nome?: string | string[] }; env: Record<string, unknown> }
 

@@ -19,35 +19,177 @@ export interface Compito {
 export const nuovoId = () =>
   globalThis.crypto?.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
 
-/* ── Archivio (per ora nel browser; poi passerà a un server di casa) ── */
+/* ── Archivio: il diario è della CLASSE, la spunta è di ognuno ──────────
+ * L'elenco dei compiti è uno solo per tutti quelli che entrano (api/compiti.ts, tabella `compiti`):
+ * se uno carica gli screen, gli altri trovano il diario già scritto.
+ * - `studio-classe:compiti`: copia nel browser dell'elenco del server (fuori da "studio-app:",
+ *   così sync.js non la mette nei progressi personali e non la toglie quando cambia utente).
+ * - `studio-classe:sospese`: modifiche non ancora arrivate al server (partono appena c'è rete).
+ * - `studio-app:fatti`: gli id dei compiti spuntati da CHI è collegato (progressi personali, sync.js).
+ * Vecchi browser: `studio-app:compiti` (diario personale di prima) si manda come "importa"
+ * (entra solo se il server non l'ha mai avuto) e poi si toglie.
+ */
 
-const CHIAVE = 'studio-app:compiti'
-let cache: Compito[] = leggi()
-const ascoltatori = new Set<() => void>()
+type Condiviso = Omit<Compito, 'fatto'>
+type Sospese = { metti: Record<string, Condiviso>; importa: Record<string, Condiviso>; togli: string[] }
 
-function leggi(): Compito[] {
+const CLASSE = 'studio-classe:compiti'
+const SOSPESE = 'studio-classe:sospese'
+const FATTI = 'studio-app:fatti'
+const VECCHIA = 'studio-app:compiti'
+
+const leggiJson = <T,>(k: string, vuoto: T): T => {
   try {
-    return JSON.parse(localStorage.getItem(CHIAVE) ?? '[]')
+    const v = localStorage.getItem(k)
+    return v ? (JSON.parse(v) as T) : vuoto
   } catch {
-    return []
+    return vuoto
   }
 }
-
-// dati arrivati dal server (public/sync.js, es. dopo il login): si rilegge la copia nel browser
-addEventListener('studio-sync:dati', () => {
-  cache = leggi()
-  ascoltatori.forEach((f) => f())
-})
-
-function salva(lista: Compito[]) {
-  cache = lista
+const scriviJson = (k: string, v: unknown) => {
   try {
-    localStorage.setItem(CHIAVE, JSON.stringify(lista))
+    localStorage.setItem(k, JSON.stringify(v))
   } catch {
     /* memoria del browser non disponibile */
   }
+}
+const senzaFatto = (c: Compito): Condiviso => {
+  const copia: Partial<Compito> = { ...c }
+  delete copia.fatto
+  return copia as Condiviso
+}
+
+let server: Condiviso[] = leggiJson(CLASSE, [])
+let sospese: Sospese = { metti: {}, importa: {}, togli: [], ...leggiJson<Partial<Sospese>>(SOSPESE, {}) }
+let fatti = new Set<string>(leggiJson<string[]>(FATTI, []))
+let cache: Compito[] = []
+const ascoltatori = new Set<() => void>()
+
+/** Elenco da mostrare: quello del server con sopra le modifiche locali non ancora mandate, più le spunte mie. */
+function ricomponi() {
+  const togli = new Set(sospese.togli)
+  const lista = server.filter((c) => !togli.has(c.id)).map((c) => sospese.metti[c.id] ?? c)
+  const visti = new Set(lista.map((c) => c.id))
+  for (const c of [...Object.values(sospese.importa), ...Object.values(sospese.metti)])
+    if (!visti.has(c.id) && !togli.has(c.id)) {
+      lista.push(c)
+      visti.add(c.id)
+    }
+  cache = lista.map((c) => ({ ...c, fatto: fatti.has(c.id) }))
   ascoltatori.forEach((f) => f())
 }
+
+const vuote = () => !Object.keys(sospese.metti).length && !Object.keys(sospese.importa).length && !sospese.togli.length
+const salvaSospese = () => scriviJson(SOSPESE, sospese)
+
+/** Porta nel diario della classe i compiti del vecchio diario personale di questo browser. */
+function migraVecchi() {
+  if (localStorage.getItem(VECCHIA) === null) return
+  const vecchi = leggiJson<Compito[]>(VECCHIA, [])
+  for (const c of vecchi) {
+    if (!c?.id || sospese.importa[c.id] || sospese.metti[c.id]) continue
+    sospese.importa[c.id] = senzaFatto(c)
+    if (c.fatto) fatti.add(c.id)
+  }
+  salvaSospese()
+  if (vecchi.some((c) => c?.fatto)) scriviJson(FATTI, [...fatti])
+  localStorage.removeItem(VECCHIA) // sync.js lo toglie anche dai progressi sul server
+  ricomponi()
+  pianifica()
+}
+
+let timer: ReturnType<typeof setTimeout> | undefined
+let inVolo = false
+const pianifica = () => {
+  clearTimeout(timer)
+  timer = setTimeout(() => void manda(), 1500)
+}
+
+function arrivato(compiti: Condiviso[]) {
+  server = compiti
+  scriviJson(CLASSE, compiti)
+  ricomponi()
+}
+
+/** Manda le modifiche in sospeso (null se il server non risponde); poi l'elenco è quello del server. */
+async function manda(keepalive = false): Promise<boolean> {
+  clearTimeout(timer)
+  if (vuote()) return true
+  if (inVolo && !keepalive) {
+    pianifica() // ne sta già partendo una: si riprova dopo
+    return false
+  }
+  const corpo = {
+    metti: Object.values(sospese.metti),
+    importa: Object.values(sospese.importa),
+    togli: sospese.togli,
+  }
+  const mandate = JSON.stringify(corpo)
+  inVolo = true
+  try {
+    const r = await fetch('/api/compiti', {
+      method: 'PUT', keepalive, credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: mandate,
+    })
+    if (!r.ok) return false
+    const { compiti } = (await r.json()) as { compiti: Condiviso[] }
+    // tolte solo le modifiche mandate e non cambiate di nuovo nel frattempo
+    for (const c of corpo.metti) if (JSON.stringify(sospese.metti[c.id]) === JSON.stringify(c)) delete sospese.metti[c.id]
+    for (const c of corpo.importa) delete sospese.importa[c.id]
+    sospese.togli = sospese.togli.filter((id) => !corpo.togli.includes(id))
+    salvaSospese()
+    arrivato(compiti)
+    return true
+  } catch {
+    return false
+  } finally {
+    inVolo = false
+  }
+}
+
+let ultimoScarico = 0
+/** Prende dal server il diario della classe (prima manda le modifiche in sospeso). */
+async function scarica() {
+  if (!vuote()) {
+    await manda()
+    return
+  }
+  ultimoScarico = Date.now()
+  try {
+    const r = await fetch('/api/compiti', { credentials: 'same-origin', cache: 'no-store' })
+    if (!r.ok) return // 401: nessuno collegato (Accesso chiede il login)
+    const { compiti } = (await r.json()) as { compiti: Condiviso[] }
+    if (vuote()) arrivato(compiti)
+    else await manda()
+  } catch {
+    /* senza rete resta la copia del browser */
+  }
+}
+
+migraVecchi()
+ricomponi()
+void scarica()
+// dopo il login (sync.js) e quando si torna sull'app: il diario si riallinea con quello che hanno scritto gli altri
+addEventListener('studio-sync:collegato', () => {
+  fatti = new Set(leggiJson<string[]>(FATTI, [])) // può essere entrato un altro utente: spunte sue
+  ricomponi()
+  void scarica()
+})
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    if (!vuote()) void manda(true)
+  } else if (Date.now() - ultimoScarico > 10_000) void scarica()
+})
+setInterval(() => {
+  if (document.visibilityState === 'visible') void scarica()
+}, 120_000)
+// i progressi personali sono arrivati dal server (sync.js): spunte di chi è collegato
+addEventListener('studio-sync:dati', () => {
+  migraVecchi()
+  fatti = new Set(leggiJson<string[]>(FATTI, []))
+  ricomponi()
+})
 
 export function useCompiti(): Compito[] {
   return useSyncExternalStore(
@@ -59,10 +201,43 @@ export function useCompiti(): Compito[] {
   )
 }
 
-export const aggiungiCompiti = (nuovi: Compito[]) => salva([...cache, ...nuovi])
-export const aggiornaCompito = (id: string, modifica: Partial<Compito>) =>
-  salva(cache.map((c) => (c.id === id ? { ...c, ...modifica } : c)))
-export const eliminaCompito = (id: string) => salva(cache.filter((c) => c.id !== id))
+function segnaFatto(id: string, fatto: boolean) {
+  if (fatto) fatti.add(id)
+  else fatti.delete(id)
+  scriviJson(FATTI, [...fatti])
+}
+
+export function aggiungiCompiti(nuovi: Compito[]) {
+  for (const c of nuovi) {
+    sospese.metti[c.id] = senzaFatto(c)
+    if (c.fatto) segnaFatto(c.id, true)
+  }
+  salvaSospese()
+  ricomponi()
+  pianifica()
+}
+
+export function aggiornaCompito(id: string, modifica: Partial<Compito>) {
+  const { fatto, ...resto } = modifica
+  if (fatto !== undefined) segnaFatto(id, fatto)
+  const attuale = cache.find((c) => c.id === id)
+  if (attuale && Object.keys(resto).length) {
+    sospese.metti[id] = senzaFatto({ ...attuale, ...resto })
+    salvaSospese()
+    pianifica()
+  }
+  ricomponi()
+}
+
+export function eliminaCompito(id: string) {
+  delete sospese.metti[id]
+  delete sospese.importa[id]
+  if (!sospese.togli.includes(id)) sospese.togli.push(id)
+  if (fatti.has(id)) segnaFatto(id, false)
+  salvaSospese()
+  ricomponi()
+  pianifica()
+}
 
 const parole = (s: string) =>
   s

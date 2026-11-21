@@ -29,6 +29,15 @@ export async function preparaTabelle() {
     dati jsonb NOT NULL DEFAULT '{}'::jsonb,
     aggiornato timestamptz NOT NULL DEFAULT now()
   )`
+  // diario della classe, uguale per tutti (api/compiti.ts): una riga per compito
+  await db`CREATE TABLE IF NOT EXISTS compiti (
+    id text PRIMARY KEY,
+    dati jsonb NOT NULL,
+    autore int REFERENCES utenti(id) ON DELETE SET NULL,
+    creato timestamptz NOT NULL DEFAULT now(),
+    aggiornato timestamptz NOT NULL DEFAULT now(),
+    tolto boolean NOT NULL DEFAULT false
+  )`
   // profilo (impostazioni utente): nome da mostrare e foto (data URL piccola, ~256 px)
   await db`ALTER TABLE utenti ADD COLUMN IF NOT EXISTS nome_visibile text`
   await db`ALTER TABLE utenti ADD COLUMN IF NOT EXISTS immagine text`
