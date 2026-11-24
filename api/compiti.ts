@@ -54,12 +54,18 @@ export async function PUT(req: Request) {
   if (!metti || !importa || !togli || metti.includes(null) || importa.includes(null) || togli.some((t) => typeof t !== 'string'))
     return json({ errore: 'Dati non validi' }, 400)
 
+  // Una query per gruppo, non una per compito: su Cloudflare ogni query è una sottorichiesta
+  // e oltre 50 per chiamata la funzione fallisce (500). Visto il 24/11 con 52 compiti da importare.
+  // Un id ripetuto nello stesso INSERT … ON CONFLICT DO UPDATE è un errore: si tiene l'ultimo.
+  const unici = (l: Compito[]) => JSON.stringify([...new Map(l.map((c) => [c.id, c])).values()])
   const db = sql()
-  for (const c of importa as Compito[])
-    await db`INSERT INTO compiti (id, dati, autore) VALUES (${c.id}, ${JSON.stringify(c)}::jsonb, ${id})
+  if (importa.length)
+    await db`INSERT INTO compiti (id, dati, autore)
+      SELECT x->>'id', x, ${id}::int FROM jsonb_array_elements(${unici(importa as Compito[])}::jsonb) AS x
       ON CONFLICT (id) DO NOTHING`
-  for (const c of metti as Compito[])
-    await db`INSERT INTO compiti (id, dati, autore) VALUES (${c.id}, ${JSON.stringify(c)}::jsonb, ${id})
+  if (metti.length)
+    await db`INSERT INTO compiti (id, dati, autore)
+      SELECT x->>'id', x, ${id}::int FROM jsonb_array_elements(${unici(metti as Compito[])}::jsonb) AS x
       ON CONFLICT (id) DO UPDATE SET dati = EXCLUDED.dati, aggiornato = now() WHERE NOT compiti.tolto`
   if (togli.length)
     await db`UPDATE compiti SET tolto = true, aggiornato = now() WHERE id = ANY(${togli as string[]}::text[])`
