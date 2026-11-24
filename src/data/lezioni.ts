@@ -171,6 +171,15 @@ export const LEZIONI: Lezione[] = [
     domande: 18,
     sezioni: ['scheda', 'esercizi', 'quiz', 'interroga'],
   },
+  {
+    id: 'tecnologia-materie-prime-materiali',
+    materia: 'tecnologia',
+    titolo: 'Materie prime e materiali',
+    fonte: 'Libro di tecnologia (Atlas) · cap. 1 · pag. 14-27 · senza libro, da allineare',
+    perIl: ['2026-11-25'],
+    domande: 18,
+    sezioni: ['scheda', 'esercizi', 'quiz', 'interroga'],
+  },
 ]
 
 /** Indirizzo completo: con la sola barra finale il server di Vite rimanda all'app. */

@@ -372,7 +372,7 @@ addEventListener('hashchange', () => { const h = location.hash.replace('#', '');
 const htmlScheda = (s, i) => `
   <article class="carta" id="carta-${s.id}" data-zona="${s.zona}">
     <div class="carta-testa">
-      <h2><span class="num">${i + 1}</span>${s.titolo} <span class="pag">pag. ${s.pag}</span></h2>
+      <h2><span class="num">${i + 1}</span>${s.titolo}${s.pag ? ` <span class="pag">pag. ${s.pag}</span>` : ''}</h2>
       <button class="ascolta" data-ascolta="${s.id}" aria-pressed="false">🔊 Ascolta</button>
     </div>
     ${s.html}
